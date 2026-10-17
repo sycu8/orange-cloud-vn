@@ -22,11 +22,18 @@ npm run check
 
 ## Deploy
 
+Đẩy lên `main` là GitHub Actions chạy `npx wrangler deploy`. Workflow dùng hai secret của repository:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+Worker phục vụ static assets, thêm security header, và trả `GET /api/health`. Địa chỉ mặc định là `orange-cloud-vn.<account>.workers.dev`.
+
+Deploy tay, khi đã có token trong môi trường:
+
 ```bash
 npm run deploy
 ```
-
-Worker phục vụ static assets, thêm security header, và trả `GET /api/health`.
 
 ## Tài trợ
 
