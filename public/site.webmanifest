@@ -1,0 +1,18 @@
+{
+  "name": "Orange Cloud",
+  "short_name": "Orange Cloud",
+  "description": "Studio cá nhân của Cường Lê Sỹ. Không phải ấn phẩm của Cloudflare, Inc.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0908",
+  "theme_color": "#0b0908",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

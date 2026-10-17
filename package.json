@@ -1,0 +1,17 @@
+{
+  "name": "orange-cloud-vn",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "check": "tsc --noEmit",
+    "types": "wrangler types",
+    "test": "node --test",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "5.9.3",
+    "wrangler": "4.151.1"
+  }
+}
