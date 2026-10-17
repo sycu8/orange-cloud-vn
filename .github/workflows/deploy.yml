@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - cursor/hero-copy-rewrite-2a75
 
 permissions:
   contents: read
