@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - cursor/orange-cloud-homepage-2a75
+      - cursor/hero-copy-rewrite-2a75
 
 permissions:
   contents: read
