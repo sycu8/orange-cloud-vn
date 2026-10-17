@@ -29,3 +29,8 @@ test("client language and hash handling stay conservative", () => {
   assert.match(app, /\^\[A-Za-z\]\[\\w:-\]\*\$/);
   assert.doesNotMatch(app, /innerHTML|document\.write|eval\(/);
 });
+
+test("theme toggle only stores light or dark", () => {
+  assert.match(app, /theme === "light" \? "light" : "dark"/);
+  assert.match(app, /localStorage\.setItem\("oc-theme"/);
+});

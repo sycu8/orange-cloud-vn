@@ -3,19 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title data-en="Orange Cloud — Personal studio of Cuong Le Sy">Orange Cloud — Studio cá nhân của Cường Lê Sỹ</title>
+    <title data-en="Orange Cloud — Personal Cloudflare showcase">Orange Cloud — Showcase cá nhân trên Cloudflare</title>
     <meta
       name="description"
-      content="Orange Cloud là studio cá nhân của Cường Lê Sỹ. 14 sản phẩm trên Cloudflare Developer Platform. Không phải ấn phẩm của Cloudflare, Inc."
-      data-en="Orange Cloud is the personal studio of Cuong Le Sy. 14 products on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc."
+      content="Orange Cloud là dự án cá nhân: 14 sản phẩm demo trên Cloudflare Developer Platform. Không máy chủ tự vận hành. Không phải ấn phẩm của Cloudflare, Inc."
+      data-en="Orange Cloud is a personal project: 14 demo products on the Cloudflare Developer Platform. No servers to manage. Not a publication of Cloudflare, Inc."
     />
-    <meta name="author" content="Cuong Le Sy" />
-    <meta name="theme-color" content="#0b0908" />
-    <meta property="og:title" content="Orange Cloud — Studio cá nhân" data-en="Orange Cloud — Personal studio" />
+    <meta name="theme-color" content="#0b0908" id="theme-color" />
+    <meta property="og:title" content="Orange Cloud" data-en="Orange Cloud" />
     <meta
       property="og:description"
-      content="Studio cá nhân của Cường Lê Sỹ. 14 sản phẩm trên Cloudflare Developer Platform."
-      data-en="Personal studio of Cuong Le Sy. 14 products on the Cloudflare Developer Platform."
+      content="Showcase cá nhân trên Cloudflare Developer Platform. Không máy chủ tự vận hành."
+      data-en="A personal showcase on the Cloudflare Developer Platform. No servers to manage."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://orangecloud.vn/" />
@@ -24,27 +23,22 @@
     <link rel="canonical" href="https://orangecloud.vn/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/site.webmanifest" />
-    <link rel="author" href="https://github.com/sycu8" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
+    <script src="/theme.js"></script>
     <link rel="stylesheet" href="/styles.css" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "ProfilePage",
-        "dateModified": "2026-10-17",
-        "mainEntity": {
-          "@type": "Person",
-          "name": "Cuong Le Sy",
-          "alternateName": ["Cường Lê Sỹ", "Sycule", "sycu8"],
-          "url": "https://github.com/sycu8",
-          "homeLocation": { "@type": "Place", "name": "Vietnam" },
-          "disambiguatingDescription": "Personal studio Orange Cloud. This is not a publication of Cloudflare, Inc."
-        }
+        "@type": "WebSite",
+        "name": "Orange Cloud",
+        "url": "https://orangecloud.vn/",
+        "description": "Personal showcase of products built on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc.",
+        "dateModified": "2026-10-17"
       }
     </script>
   </head>
@@ -60,16 +54,6 @@
         </svg>
         Orange Cloud
       </a>
-      <button
-        class="nav-toggle"
-        type="button"
-        aria-expanded="false"
-        aria-controls="site-nav"
-        data-en-aria="Open menu"
-        aria-label="Mở menu"
-      >
-        <span data-en="Menu">Menu</span>
-      </button>
       <nav id="site-nav" class="nav-links">
         <a href="#projects" data-en="Projects">Dự án</a>
         <a href="#about" data-en="About">Giới thiệu</a>
@@ -77,24 +61,46 @@
         <a href="#timeline" data-en="Timeline">Mốc</a>
         <a href="#legal" data-en="Legal">Pháp lý</a>
       </nav>
-      <div class="lang" role="group" aria-label="Ngôn ngữ" data-en-aria="Language">
-        <button type="button" data-set-lang="vi" aria-pressed="true">VI</button>
-        <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+      <div class="nav-tools">
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-en-aria="Open menu"
+          aria-label="Mở menu"
+        >
+          <span data-en="Menu">Menu</span>
+        </button>
+        <button
+          class="theme-toggle"
+          type="button"
+          data-theme-toggle
+          aria-label="Chuyển chế độ sáng hoặc tối"
+          data-en-aria="Switch light or dark mode"
+        >
+          <span class="icon-moon" aria-hidden="true">☾</span>
+          <span class="icon-sun" aria-hidden="true">☀</span>
+        </button>
+        <div class="lang" role="group" aria-label="Ngôn ngữ" data-en-aria="Language">
+          <button type="button" data-set-lang="vi" aria-pressed="true">VI</button>
+          <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+        </div>
       </div>
     </header>
 
     <main id="content">
       <section class="hero" id="top">
         <div class="wrap-wide">
-          <p class="eyebrow">Personal studio · 2026</p>
+          <p class="eyebrow">Personal project · Cloudflare · 2026</p>
           <h1 class="wordmark"><span>Orange</span><span>Cloud</span></h1>
           <div class="hero-grid">
             <div>
-              <p class="manifesto" data-en="Personal products on the Cloudflare Developer Platform.">
-                Sản phẩm cá nhân trên Cloudflare Developer Platform.
+              <p class="manifesto" data-en="A personal showcase on the Cloudflare Developer Platform.">
+                Showcase cá nhân trên Cloudflare Developer Platform.
               </p>
-              <p class="lede" data-en="Orange Cloud is the personal studio of Cuong Le Sy. This page lists 14 projects he built and runs himself.">
-                Orange Cloud là studio cá nhân của Cường Lê Sỹ. Trang này liệt kê 14 dự án anh tự xây và đang vận hành.
+              <p class="lede" data-en="Orange Cloud is a personal project. It lists 14 live demos built on Cloudflare — no servers to manage, edge delivery, and always-on availability.">
+                Orange Cloud là dự án cá nhân. Trang liệt kê 14 bản demo chạy trên Cloudflare — không máy chủ tự vận hành, phân phối từ edge, sẵn sàng gần như 100%.
               </p>
               <div class="actions">
                 <a class="btn btn-solid" href="#projects" data-en="View projects">Xem dự án</a>
@@ -120,10 +126,10 @@
           </div>
         </div>
         <dl class="wrap-wide stats">
-          <div><dt>14</dt><dd data-en="projects">dự án</dd></div>
+          <div><dt>14</dt><dd data-en="demo projects">dự án demo</dd></div>
           <div><dt>08</dt><dd data-en="live sites">trang đang chạy</dd></div>
-          <div><dt>05</dt><dd data-en="markets in the job role">thị trường trong vai trò nghề</dd></div>
-          <div><dt>01</dt><dd data-en="builder">người xây</dd></div>
+          <div><dt>0</dt><dd data-en="servers to manage">máy chủ tự vận hành</dd></div>
+          <div><dt>~100%</dt><dd data-en="edge uptime">uptime edge</dd></div>
         </dl>
       </section>
 
@@ -619,33 +625,41 @@
           </div>
           <div class="studio-grid">
             <aside class="founder">
-              <div class="mono-mark" aria-hidden="true">CL</div>
-              <h3>Cường Lê Sỹ</h3>
-              <p data-en="Cuong Le Sy · Sycule · GitHub @sycu8">Cuong Le Sy · Sycule · GitHub @sycu8</p>
-              <p data-en="Territory Account Executive for business and SaaS. Vietnam, Cambodia, Laos, Myanmar, Brunei.">
-                Territory Account Executive, mảng doanh nghiệp và SaaS. Việt Nam, Campuchia, Lào, Myanmar, Brunei.
+              <div class="mono-mark" aria-hidden="true">OC</div>
+              <h3 data-en="What this is">Đây là gì</h3>
+              <p data-en="A personal project and demo showcase on the Cloudflare Developer Platform.">
+                Dự án cá nhân và showcase demo trên Cloudflare Developer Platform.
               </p>
-              <ul class="regions" aria-label="Thị trường" data-en-aria="Markets">
-                <li><b>VN</b> <span data-en="Vietnam">Việt Nam</span></li>
-                <li><b>KH</b> <span data-en="Cambodia">Campuchia</span></li>
-                <li><b>LA</b> <span data-en="Laos">Lào</span></li>
-                <li><b>MM</b> Myanmar</li>
-                <li><b>BN</b> Brunei</li>
+              <ul class="value-list">
+                <li>
+                  <strong data-en="No servers to manage">Không máy chủ tự vận hành</strong>
+                  <span data-en="Apps run on Cloudflare Workers and related services. There is no origin fleet to patch or scale by hand.">
+                    Ứng dụng chạy trên Cloudflare Workers và các dịch vụ liên quan. Không có cụm origin phải tự vá hay tự mở rộng.
+                  </span>
+                </li>
+                <li>
+                  <strong data-en="Always-on edge">Edge luôn sẵn sàng</strong>
+                  <span data-en="Requests run on Cloudflare's global network for low latency and near-100% uptime — without keeping origin servers online.">
+                    Request chạy trên mạng toàn cầu của Cloudflare: độ trễ thấp, uptime gần 100%, không cần giữ máy chủ origin luôn bật.
+                  </span>
+                </li>
+                <li>
+                  <strong data-en="Platform value, in practice">Giá trị nền tảng, qua thực tế</strong>
+                  <span data-en="Working software — not slides — that shows what the Developer Platform can do end to end.">
+                    Phần mềm đang chạy, không phải slide, để thấy Developer Platform làm được gì từ đầu đến cuối.
+                  </span>
+                </li>
               </ul>
-              <p class="fine" data-en="Job context only. This page is personal work and is not a message from his employer.">
-                Chỉ là bối cảnh nghề nghiệp. Trang này là việc cá nhân, không phải thông điệp của nơi anh làm việc.
-              </p>
-              <p><a class="ext" rel="me noopener noreferrer" href="https://github.com/sycu8" target="_blank">GitHub <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a></p>
             </aside>
             <div>
-              <p data-en="Orange Cloud is a personal studio, not a company and not an official channel. Cuong builds products on the Cloudflare Developer Platform and lists them here.">
-                Orange Cloud là studio cá nhân, không phải công ty và không phải kênh chính thức. Cường xây sản phẩm trên Cloudflare Developer Platform và liệt kê tại đây.
+              <p data-en="Orange Cloud is a demo showcase of how the Cloudflare Developer Platform brings value and capability: compute, data, AI, realtime, storage, and security controls in one place.">
+                Orange Cloud là showcase demo về giá trị và khả năng của Cloudflare Developer Platform: compute, dữ liệu, AI, realtime, lưu trữ và kiểm soát bảo mật trong một nền tảng.
               </p>
-              <p data-en="The projects cover HR, social insurance lookup, social listening, World Cup analysis, private poker, meal planning, and developer tools.">
-                Các dự án gồm nhân sự, tra cứu bảo hiểm, theo dõi thương hiệu, phân tích World Cup, poker riêng, lập thực đơn và công cụ cho developer.
+              <p data-en="The demos cover HR, social insurance lookup, social listening, World Cup analysis, private poker, meal planning, and developer tooling.">
+                Các bản demo gồm nhân sự, tra cứu bảo hiểm, theo dõi thương hiệu, phân tích World Cup, poker riêng, lập thực đơn và công cụ cho developer.
               </p>
-              <p data-en="This page covers 14 selected repositories. It is not every public repo. If a repository is only a title, the card says so.">
-                Trang này liệt kê 14 repository được chọn, không phải mọi repo công khai. Repo nào mới có tiêu đề thì thẻ ghi đúng như vậy.
+              <p data-en="This page lists 14 selected repositories. It is not every public repo. If a repository is only a title, the card says so. This is not an official Cloudflare publication.">
+                Trang liệt kê 14 repository được chọn, không phải mọi repo công khai. Repo nào mới có tiêu đề thì thẻ ghi đúng như vậy. Đây không phải ấn phẩm chính thức của Cloudflare.
               </p>
             </div>
           </div>
@@ -775,8 +789,8 @@
       <div class="wrap foot-grid">
         <div>
           <strong>Orange Cloud</strong>
-          <p data-en="Personal studio of Cuong Le Sy. This is not a publication of Cloudflare, Inc. Original monogram. No official imagery.">
-            Studio cá nhân của Cường Lê Sỹ. Đây không phải ấn phẩm của Cloudflare, Inc. Monogram gốc. Không dùng hình ảnh chính thức.
+          <p data-en="A personal project on the Cloudflare Developer Platform. This is not a publication of Cloudflare, Inc. Original monogram. No official imagery.">
+            Dự án cá nhân trên Cloudflare Developer Platform. Đây không phải ấn phẩm của Cloudflare, Inc. Monogram gốc. Không dùng hình ảnh chính thức.
           </p>
           <p data-en="If the demos are useful, you can support the work with a coffee. It is voluntary.">
             Nếu các bản demo hữu ích, có thể ủng hộ bằng một ly cà phê. Việc này là tự nguyện.
