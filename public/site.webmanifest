@@ -1,7 +1,7 @@
 {
   "name": "Orange Cloud",
   "short_name": "Orange Cloud",
-  "description": "Studio cá nhân của Cường Lê Sỹ. Không phải ấn phẩm của Cloudflare, Inc.",
+  "description": "Studio cá nhân của Cường Lê Sỹ. 14 sản phẩm trên Cloudflare Developer Platform. Không phải ấn phẩm của Cloudflare, Inc.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0908",

@@ -33,6 +33,11 @@ const progress = document.querySelector(".progress");
 let filter = "all";
 let query = "";
 
+function closeNav() {
+  nav?.classList.remove("is-open");
+  navToggle?.setAttribute("aria-expanded", "false");
+}
+
 function applyLanguage(lang) {
   const next = lang === "en" ? "en" : "vi";
   document.documentElement.lang = next;
@@ -73,11 +78,11 @@ function applyLanguage(lang) {
 }
 
 function applyFilter() {
-  const needle = query.trim().toLowerCase();
+  const needle = query.trim().toLowerCase().slice(0, 120);
   let shown = 0;
 
   projects.forEach((project) => {
-    const tags = (project.dataset.tags || "").split(/\s+/);
+    const tags = (project.dataset.tags || "").split(/\s+/).filter(Boolean);
     const tagOk = filter === "all" || tags.includes(filter);
     const textOk = needle.length === 0 || project.textContent.toLowerCase().includes(needle);
     const visible = tagOk && textOk;
@@ -89,9 +94,19 @@ function applyFilter() {
   empty?.classList.toggle("is-visible", shown === 0);
 }
 
+function hashTargetId() {
+  const raw = location.hash.replace(/^#/, "");
+  if (!raw || raw.length > 80) return "";
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return "";
+  }
+}
+
 function openFromHash() {
-  const id = location.hash.replace("#", "");
-  if (!id) return;
+  const id = hashTargetId();
+  if (!id || !/^[A-Za-z][\w:-]*$/.test(id)) return;
   const project = document.getElementById(id);
   if (!project || !project.classList.contains("project")) return;
   filter = "all";
@@ -122,7 +137,7 @@ chips.forEach((chip) => {
 });
 
 search?.addEventListener("input", () => {
-  query = search.value;
+  query = search instanceof HTMLInputElement ? search.value : "";
   applyFilter();
 });
 
@@ -134,15 +149,18 @@ navToggle?.addEventListener("click", () => {
 
 nav?.querySelectorAll("a").forEach((link) => {
   link.addEventListener("click", () => {
-    nav.classList.remove("is-open");
-    navToggle?.setAttribute("aria-expanded", "false");
+    closeNav();
   });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeNav();
 });
 
 function onScroll() {
   if (!progress) return;
   const height = document.documentElement.scrollHeight - window.innerHeight;
-  const value = height > 0 ? window.scrollY / height : 0;
+  const value = height > 0 ? Math.min(1, Math.max(0, window.scrollY / height)) : 0;
   progress.style.transform = `scaleX(${value})`;
 }
 

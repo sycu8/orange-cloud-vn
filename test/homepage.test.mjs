@@ -34,7 +34,7 @@ test("legal notice and personal-capacity language are present in both languages"
   assert.match(html, /This is not a publication of Cloudflare, Inc\./);
   assert.match(html, /Không dùng hình ảnh chính thức/);
   assert.match(html, /tư cách cá nhân/);
-  assert.match(html, /nominative|only to describe technology/i);
+  assert.match(html, /only to describe technology/i);
 });
 
 test("buy me a coffee banner points at the requested page", () => {
