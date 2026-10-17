@@ -4,6 +4,8 @@ const textNodes = [...document.querySelectorAll("[data-en]")].filter(
 const metaNodes = [...document.querySelectorAll("meta[data-en]")];
 const ariaNodes = [...document.querySelectorAll("[data-en-aria]")];
 const placeholderNodes = [...document.querySelectorAll("[data-en-placeholder]")];
+const themeColorMeta = document.querySelector("#theme-color");
+const themeToggle = document.querySelector("[data-theme-toggle]");
 
 textNodes.forEach((node) => {
   node.dataset.vi = node.textContent.trim();
@@ -36,6 +38,35 @@ let query = "";
 function closeNav() {
   nav?.classList.remove("is-open");
   navToggle?.setAttribute("aria-expanded", "false");
+}
+
+function currentTheme() {
+  const value = document.documentElement.getAttribute("data-theme");
+  return value === "light" ? "light" : "dark";
+}
+
+function applyTheme(theme) {
+  const next = theme === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  document.documentElement.style.colorScheme = next;
+  if (themeColorMeta) {
+    themeColorMeta.setAttribute("content", next === "light" ? "#f7f4ef" : "#0b0908");
+  }
+  if (themeToggle) {
+    const label =
+      next === "light"
+        ? { vi: "Chuyển sang chế độ tối", en: "Switch to dark mode" }
+        : { vi: "Chuyển sang chế độ sáng", en: "Switch to light mode" };
+    const lang = document.documentElement.lang === "en" ? "en" : "vi";
+    themeToggle.setAttribute("aria-label", label[lang]);
+    themeToggle.dataset.enAria = label.en;
+    themeToggle.dataset.viAria = label.vi;
+  }
+  try {
+    localStorage.setItem("oc-theme", next);
+  } catch {
+    /* private mode */
+  }
 }
 
 function applyLanguage(lang) {
@@ -74,6 +105,7 @@ function applyLanguage(lang) {
     /* private mode */
   }
 
+  applyTheme(currentTheme());
   applyFilter();
 }
 
@@ -124,6 +156,10 @@ function openFromHash() {
 
 document.querySelectorAll("[data-set-lang]").forEach((button) => {
   button.addEventListener("click", () => applyLanguage(button.dataset.setLang || "vi"));
+});
+
+themeToggle?.addEventListener("click", () => {
+  applyTheme(currentTheme() === "light" ? "dark" : "light");
 });
 
 chips.forEach((chip) => {
