@@ -27,7 +27,9 @@ npm run check
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-Worker phục vụ static assets, thêm security header, và trả `GET /api/health`. Địa chỉ mặc định là `orange-cloud-vn.<account>.workers.dev`.
+Worker phục vụ static assets, thêm security header, và trả `GET /api/health`.
+
+Đang chạy: https://orange-cloud-vn.sycu-lee.workers.dev
 
 Deploy tay, khi đã có token trong môi trường:
 
