@@ -1,0 +1,14 @@
+/* TEAM */
+Founder: Cuong Le Sy (Cường Lê Sỹ)
+GitHub: https://github.com/sycu8
+Site: https://orangecloud.vn
+Location: Vietnam
+
+/* THANKS */
+Readers, startup communities, and anyone who ships on the developer platform.
+
+/* SITE */
+Personal studio field notes.
+Not a publication of Cloudflare, Inc.
+Languages: Vietnamese, English
+Updated: 2026-10-17
