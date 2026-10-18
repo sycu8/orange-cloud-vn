@@ -6,7 +6,7 @@
     "dev": "wrangler dev",
     "check": "tsc --noEmit",
     "types": "wrangler types",
-    "test": "node --test",
+    "test": "node --experimental-strip-types --test",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {

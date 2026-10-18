@@ -1,3 +1,10 @@
+import {
+  apexHostRedirect,
+  canonicalRedirect,
+  legacyRedirect,
+  shouldServeNotFound,
+} from "./routes.ts";
+
 const BASE_CSP = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -29,6 +36,14 @@ function withSecurity(response: Response, secure: boolean): Response {
     "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   );
   headers.set("cross-origin-opener-policy", "same-origin");
+  const contentType = headers.get("content-type");
+  if (
+    contentType &&
+    contentType.toLowerCase().startsWith("text/html") &&
+    !/charset=/i.test(contentType)
+  ) {
+    headers.set("content-type", "text/html; charset=utf-8");
+  }
   if (secure) {
     headers.set(
       "strict-transport-security",
@@ -40,6 +55,19 @@ function withSecurity(response: Response, secure: boolean): Response {
     statusText: response.statusText,
     headers,
   });
+}
+
+function redirect(location: string, secure: boolean): Response {
+  return withSecurity(
+    new Response(null, {
+      status: 301,
+      headers: {
+        location,
+        "cache-control": "public, max-age=86400",
+      },
+    }),
+    secure,
+  );
 }
 
 function methodNotAllowed(allow: string, secure: boolean): Response {
@@ -65,6 +93,15 @@ export default {
     try {
       if (method === "TRACE" || method === "TRACK") {
         return methodNotAllowed("GET, HEAD", secure);
+      }
+
+      if (method === "GET" || method === "HEAD") {
+        const hostTarget = apexHostRedirect(url);
+        if (hostTarget) return redirect(hostTarget, secure);
+        const canonicalTarget = canonicalRedirect(url.pathname, url.search);
+        if (canonicalTarget) return redirect(canonicalTarget, secure);
+        const legacyTarget = legacyRedirect(url.pathname, url.search);
+        if (legacyTarget) return redirect(legacyTarget, secure);
       }
 
       if (url.pathname === "/api/health") {
@@ -113,17 +150,22 @@ export default {
 
       let response = await env.ASSETS.fetch(request);
       if (
-        response.status === 404 &&
-        (method === "GET" || method === "HEAD") &&
-        url.pathname !== "/404.html"
+        shouldServeNotFound(
+          url.pathname,
+          response.status,
+          response.headers.get("content-type"),
+        )
       ) {
-        const fallback = await env.ASSETS.fetch(
-          new URL("/404.html", url.origin),
-        );
+        await response.body?.cancel();
+        const fallback = await env.ASSETS.fetch(new URL("/404.html", url.origin));
+        if (method === "HEAD") await fallback.body?.cancel();
+        const headers = new Headers(fallback.headers);
+        headers.set("x-robots-tag", "noindex");
+        headers.set("cache-control", "no-store");
         response = new Response(method === "HEAD" ? null : fallback.body, {
           status: 404,
           statusText: "Not Found",
-          headers: fallback.headers,
+          headers,
         });
       }
 

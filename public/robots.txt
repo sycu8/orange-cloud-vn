@@ -1,4 +1,6 @@
 User-agent: *
+Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
 
 Sitemap: https://orangecloud.vn/sitemap.xml
+Sitemap: https://blog.orangecloud.vn/sitemap.xml
