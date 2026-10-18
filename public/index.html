@@ -66,6 +66,7 @@
             "publisher": { "@id": "https://orangecloud.vn/#person" },
             "dateModified": "2026-10-18",
             "hasPart": [
+              { "@type": "WebPage", "name": "Kiểm tra phủ edge", "url": "https://orangecloud.vn/tools/edge-coverage/" },
               { "@type": "WebSite", "name": "OrangeCloud Insights", "url": "https://blog.orangecloud.vn/" },
               { "@type": "WebSite", "name": "OrangeCloud Onboarding", "url": "https://onboarding.orangecloud.vn/" },
               { "@type": "WebSite", "name": "CF Ready", "url": "https://ready.orangecloud.vn/" }
@@ -171,7 +172,8 @@
               Orange Cloud là dự án cá nhân. Trang liệt kê các bản demo chạy trên Cloudflare — không máy chủ tự vận hành, phân phối từ edge, sẵn sàng gần như 100%. Danh sách sẽ còn mở rộng.
             </p>
             <div class="actions">
-              <a class="btn btn-solid" href="#projects" data-en="View projects">Xem dự án</a>
+              <a class="btn btn-solid" href="/tools/edge-coverage/" data-en="Check edge coverage">Kiểm tra phủ edge</a>
+              <a class="btn" href="#projects" data-en="View projects">Xem dự án</a>
               <a class="btn" href="/about/" data-en="About">Giới thiệu</a>
             </div>
             <p class="notice" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc.">
@@ -181,6 +183,14 @@
           <aside class="hero-aside" aria-labelledby="live-label">
             <p class="eyebrow" id="live-label"><span class="dot" aria-hidden="true"></span><span data-en="Live">Đang chạy</span></p>
             <ul class="live-list">
+              <li>
+                <a href="/tools/edge-coverage/">
+                  <span class="live-name" data-en="Edge coverage">Kiểm tra phủ edge</span>
+                  <span class="live-meta">
+                    <span class="live-host">orangecloud.vn/tools/edge-coverage</span>
+                  </span>
+                </a>
+              </li>
               <li>
                 <a href="#onboarding" data-status-host="onboarding.orangecloud.vn">
                   <span class="live-name">Onboarding</span>
@@ -284,13 +294,44 @@
             </div>
             <input id="search" class="search" type="search" placeholder="Tìm tên, stack, miền" data-en-placeholder="Search name, stack, domain" aria-label="Tìm dự án" data-en-aria="Search projects" />
           </div>
-          <p class="count"><span id="project-count">14</span> <span data-en="projects">dự án</span></p>
+          <p class="count"><span id="project-count">15</span> <span data-en="projects">dự án</span></p>
           <p class="empty" id="empty" data-en="No matching projects.">Không có dự án khớp.</p>
           <div class="projects">
 
-            <details class="project" id="onboarding" data-tags="live platform">
+            <details class="project" id="edge" data-tags="live platform">
               <summary>
                 <span class="idx">01</span>
+                <span class="id">
+                  <span class="name" data-en="Edge coverage check">Kiểm tra phủ edge</span>
+                  <span class="lede" data-en="See whether common hostnames go through Cloudflare, another CDN, or straight to an origin.">Xem các hostname phổ biến đang đi qua Cloudflare, CDN khác, hay phân giải thẳng tới origin.</span>
+                </span>
+                <span class="pill pill-live" data-en="Live">Đang chạy</span>
+              </summary>
+              <div class="dossier"><div class="dossier-inner"><div class="dossier-grid">
+                <div class="dossier-copy">
+                  <p data-en="Checks twelve common hostnames with DNS-over-HTTPS, Cloudflare's published IP ranges, and CDN response headers. The notes are informational.">Kiểm tra mười hai hostname phổ biến bằng DNS-over-HTTPS, dải IP công bố của Cloudflare và header phản hồi của CDN. Các ghi chú chỉ mang tính tham khảo.</p>
+                  <p class="note" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc. Results are heuristics, not an official scan.">Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc. Kết quả là suy đoán, không phải bản quét chính thức.</p>
+                  <div class="actions">
+                    <a class="btn ext" href="https://github.com/sycu8/orange-cloud-vn" target="_blank" rel="noopener noreferrer"><span data-en="Source">Mã nguồn</span> <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a> <a class="btn btn-solid" href="/tools/edge-coverage/"><span data-en="Open the check">Mở trang kiểm tra</span></a>
+                  </div>
+                </div>
+                <div>
+                  <h3 data-en="Milestones">Mốc</h3>
+                  <ol>
+                    <li data-en="October 2026 — live at orangecloud.vn/tools/edge-coverage/.">10/2026 — đang chạy tại orangecloud.vn/tools/edge-coverage/.</li>
+                    <li data-en="Twelve hostnames: apex, www, api, cdn, app, static, assets, img, mail, shop, m, blog.">Mười hai hostname: apex, www, api, cdn, app, static, assets, img, mail, shop, m, blog.</li>
+                    <li data-en="Rate limited. The contact form is a prototype and sends nothing.">Có giới hạn tần suất. Form liên hệ là bản thử và không gửi đi đâu.</li>
+                  </ol>
+                  <h3>Stack</h3>
+                  <ul class="stack"><li>Workers</li><li>DNS-over-HTTPS</li><li>Static Assets</li></ul>
+                </div>
+              </div></div></div>
+            </details>
+
+
+            <details class="project" id="onboarding" data-tags="live platform">
+              <summary>
+                <span class="idx">02</span>
                 <span class="id">
                   <span class="name">Cloudflare Onboarding Journey</span>
                   <span class="lede" data-en="A three-language learning hub for Application Services, the Developer Platform, and Cloudflare One.">Hub học ba ngôn ngữ về Application Services, Developer Platform và Cloudflare One.</span>
@@ -322,7 +363,7 @@
 
             <details class="project" id="ready" data-tags="live platform">
               <summary>
-                <span class="idx">02</span>
+                <span class="idx">03</span>
                 <span class="id">
                   <span class="name">CF Ready</span>
                   <span class="lede" data-en="Checks go-live readiness for Cloudflare: migration, security, SEO, AI, and smoke tests.">Kiểm tra sẵn sàng trước khi deploy lên Cloudflare: migration, bảo mật, SEO, AI và smoke test.</span>
@@ -354,7 +395,7 @@
 
             <details class="project" id="case" data-tags="lab platform">
               <summary>
-                <span class="idx">03</span>
+                <span class="idx">04</span>
                 <span class="id">
                   <span class="name">Support Case Helper</span>
                   <span class="lede" data-en="Collects evidence and drafts a Cloudflare support case. Includes a read-only MCP server.">Thu thập bằng chứng và soạn case hỗ trợ Cloudflare. Kèm MCP server chỉ đọc.</span>
@@ -386,7 +427,7 @@
 
             <details class="project" id="omc" data-tags="lab platform">
               <summary>
-                <span class="idx">04</span>
+                <span class="idx">05</span>
                 <span class="id">
                   <span class="name">One Man Company</span>
                   <span class="lede" data-en="From a founder idea to artifacts and a Worker deploy, with agents that help plan the work.">Từ ý tưởng founder tới artifact và bản deploy Worker, với các agent hỗ trợ lập kế hoạch.</span>
@@ -418,7 +459,7 @@
 
             <details class="project" id="launch" data-tags="live product">
               <summary>
-                <span class="idx">05</span>
+                <span class="idx">06</span>
                 <span class="id">
                   <span class="name">OCLaunch</span>
                   <span class="lede" data-en="Collects product feedback, reviews improvements, and tracks releases.">Thu thập phản hồi sản phẩm, duyệt cải tiến và theo dõi bản phát hành.</span>
@@ -450,7 +491,7 @@
 
             <details class="project" id="hr" data-tags="live product">
               <summary>
-                <span class="idx">06</span>
+                <span class="idx">07</span>
                 <span class="id">
                   <span class="name">HR Management Platform</span>
                   <span class="lede" data-en="A Vietnamese HR portal for leave, travel, payroll, hiring, OKRs, and training.">Cổng nhân sự tiếng Việt: nghỉ phép, công tác, lương, tuyển dụng, OKR và đào tạo.</span>
@@ -482,7 +523,7 @@
 
             <details class="project" id="bhxh" data-tags="live product">
               <summary>
-                <span class="idx">07</span>
+                <span class="idx">08</span>
                 <span class="id">
                   <span class="name">BHXH HR Assistant</span>
                   <span class="lede" data-en="Employee HR self-service plus a cited desk for social, health, and unemployment insurance.">Cổng HR self-service và tra cứu BHXH, BHYT, BHTN có trích nguồn.</span>
@@ -514,7 +555,7 @@
 
             <details class="project" id="pulse" data-tags="live product">
               <summary>
-                <span class="idx">08</span>
+                <span class="idx">09</span>
                 <span class="id">
                   <span class="name">PulseWatch</span>
                   <span class="lede" data-en="Monitors public mentions of a person, brand, or product.">Theo dõi mention công khai về tên, thương hiệu hoặc sản phẩm.</span>
@@ -546,7 +587,7 @@
 
             <details class="project" id="pitch" data-tags="live product">
               <summary>
-                <span class="idx">09</span>
+                <span class="idx">10</span>
                 <span class="id">
                   <span class="name">PitchIntel</span>
                   <span class="lede" data-en="Tactical analysis and match probabilities for the 2026 World Cup.">Phân tích chiến thuật và xác suất trận cho World Cup 2026.</span>
@@ -578,7 +619,7 @@
 
             <details class="project" id="poker" data-tags="live product">
               <summary>
-                <span class="idx">10</span>
+                <span class="idx">11</span>
                 <span class="id">
                   <span class="name">Poker Faces</span>
                   <span class="lede" data-en="Private play-money Texas Hold’em for friends.">Texas Hold’em chip ảo cho bàn riêng với bạn bè.</span>
@@ -610,7 +651,7 @@
 
             <details class="project" id="market" data-tags="lab product">
               <summary>
-                <span class="idx">11</span>
+                <span class="idx">12</span>
                 <span class="id">
                   <span class="name">VN Market Daily</span>
                   <span class="lede" data-en="Vietnam market news, refreshed every five minutes.">Tin chứng khoán Việt Nam, làm mới mỗi năm phút.</span>
@@ -642,7 +683,7 @@
 
             <details class="project" id="meal" data-tags="lab product">
               <summary>
-                <span class="idx">12</span>
+                <span class="idx">13</span>
                 <span class="id">
                   <span class="name">Pregnancy Meal Planner</span>
                   <span class="lede" data-en="A free 7-day Vietnamese pregnancy meal plan. Stored on the user's device.">Thực đơn Việt 7 ngày cho thai kỳ. Miễn phí. Lưu trên máy người dùng.</span>
@@ -674,7 +715,7 @@
 
             <details class="project" id="viva" data-tags="lab product demo">
               <summary>
-                <span class="idx">13</span>
+                <span class="idx">14</span>
                 <span class="id">
                   <span class="name">VivaAge</span>
                   <span class="lede" data-en="Helps Vietnamese adults from age 40 prepare for health, money, and care skills.">Hỗ trợ người Việt từ 40 tuổi chuẩn bị sức khỏe, tài chính và kỹ năng chăm sóc.</span>
@@ -706,7 +747,7 @@
 
             <details class="project" id="insights" data-tags="lab seed">
               <summary>
-                <span class="idx">14</span>
+                <span class="idx">15</span>
                 <span class="id">
                   <span class="name">Orange Cloud Insights</span>
                   <span class="lede" data-en="Notes repository, plus the public site at blog.orangecloud.vn.">Repository ghi chú, và trang công khai tại blog.orangecloud.vn.</span>
@@ -785,8 +826,8 @@
               <p data-en="Orange Cloud is a demo showcase of how the Cloudflare Developer Platform brings value and capability: compute, data, AI, realtime, storage, and security controls in one place.">
                 Orange Cloud là showcase demo về giá trị và khả năng của Cloudflare Developer Platform: compute, dữ liệu, AI, realtime, lưu trữ và kiểm soát bảo mật trong một nền tảng.
               </p>
-              <p data-en="The demos cover HR, social insurance lookup, social listening, World Cup analysis, private poker, meal planning, and developer tooling.">
-                Các bản demo gồm nhân sự, tra cứu bảo hiểm, theo dõi thương hiệu, phân tích World Cup, poker riêng, lập thực đơn và công cụ cho developer.
+              <p data-en="The demos cover an edge coverage check, HR, social insurance lookup, social listening, World Cup analysis, private poker, meal planning, and developer tooling.">
+                Các bản demo gồm kiểm tra phủ edge, nhân sự, tra cứu bảo hiểm, theo dõi thương hiệu, phân tích World Cup, poker riêng, lập thực đơn và công cụ cho developer.
               </p>
               <p data-en="This page lists selected repositories. It is not every public repo. If a repository is only a title, the card says so. The list will grow. This is not an official Cloudflare publication.">
                 Trang liệt kê các repository được chọn, không phải mọi repo công khai. Repo nào mới có tiêu đề thì thẻ ghi đúng như vậy. Danh sách sẽ còn tăng. Đây không phải ấn phẩm chính thức của Cloudflare.
@@ -1001,8 +1042,8 @@
             <li>
               <time datetime="2026-10">10.2026</time>
               <div>
-                <h3 data-en="HR Platform and this site">HR Platform và trang này</h3>
-                <p data-en="HR portal and the Orange Cloud homepage.">Cổng nhân sự và trang chủ Orange Cloud.</p>
+                <h3 data-en="HR Platform, this site, edge check">HR Platform, trang này, kiểm tra phủ edge</h3>
+                <p data-en="HR portal, the Orange Cloud homepage, and the edge coverage check.">Cổng nhân sự, trang chủ Orange Cloud và trang kiểm tra phủ edge.</p>
               </div>
             </li>
           </ol>
