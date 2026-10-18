@@ -129,12 +129,26 @@ test("llms.txt, robots.txt, and favicon follow the apex audit", () => {
 });
 
 test("legacy and canonical redirects match the apex map", () => {
+  const republished = [
+    "how-to-configure-cloudflare-full-dns",
+    "how-to-configure-cloudflare-partial-dns",
+    "how-to-configure-cloudflare-ssl-tls",
+  ];
+  for (const slug of republished) {
+    const target = `https://blog.orangecloud.vn/posts/${slug}`;
+    assert.equal(legacyRedirect(`/posts/${slug}`, ""), target);
+    assert.equal(legacyRedirect(`/posts/${slug}/`, ""), target);
+  }
   assert.equal(
     legacyRedirect("/posts/how-to-configure-cloudflare-full-dns/", "?x=1"),
-    "https://onboarding.orangecloud.vn/tutorials/dns/zone-setups/full-setup/setup/?x=1",
+    "https://blog.orangecloud.vn/posts/how-to-configure-cloudflare-full-dns?x=1",
   );
   assert.equal(
     legacyRedirect("/posts/project-glasswing-mythos-ai-security", ""),
+    "https://blog.orangecloud.vn/posts/cloudflare-ai-triage-bug-bounty-sonnet-58-month-mythos-200k-advice-not-to-copy",
+  );
+  assert.equal(
+    legacyRedirect("/posts/project-glasswing-mythos-ai-security/", ""),
     "https://blog.orangecloud.vn/posts/cloudflare-ai-triage-bug-bounty-sonnet-58-month-mythos-200k-advice-not-to-copy",
   );
   assert.equal(legacyRedirect("/posts/", ""), "https://blog.orangecloud.vn/");
@@ -230,7 +244,7 @@ test("unknown paths return a real 404 and canonical aliases redirect", async () 
   assert.equal(legacy.status, 301);
   assert.equal(
     legacy.headers.get("location"),
-    "https://onboarding.orangecloud.vn/blog/ssl-tls-https-cloudflare-cho-nguoi-moi/",
+    "https://blog.orangecloud.vn/posts/how-to-configure-cloudflare-ssl-tls",
   );
 
   const head = await worker.fetch(new Request("https://orangecloud.vn/no-such", { method: "HEAD" }), env);
