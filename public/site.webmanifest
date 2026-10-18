@@ -9,6 +9,12 @@
   "lang": "vi",
   "icons": [
     {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
       "src": "/brand/mark-app.svg",
       "sizes": "any",
       "type": "image/svg+xml",

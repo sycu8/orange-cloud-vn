@@ -1,0 +1,21 @@
+# Orange Cloud
+
+> Personal project by Cường Lê Sỹ (GitHub @sycu8): demos and Vietnamese learning resources built on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc.; not endorsed or reviewed by Cloudflare.
+
+## About
+- [Giới thiệu / About](https://orangecloud.vn/about/): who maintains the site, professional-context disclosure, contact
+- [Legal notice](https://orangecloud.vn/#legal): non-affiliation and trademark notice
+
+## Learning (Vietnamese)
+- [OrangeCloud Onboarding](https://onboarding.orangecloud.vn/): learn Cloudflare from zero (DNS, SSL/TLS, CDN, Workers, Zero Trust)
+- [Onboarding blog](https://onboarding.orangecloud.vn/blog/): beginner explainers with FAQs
+
+## News (Vietnamese)
+- [OrangeCloud Insights](https://blog.orangecloud.vn/): AI-assisted Vietnamese summaries of security, cloud and AI news, with links to original sources
+- [RSS](https://blog.orangecloud.vn/feed.xml)
+
+## Tools
+- [CF Ready](https://ready.orangecloud.vn/): open-source Cloudflare go-live readiness CLI (`npx @orangecloud/cf-ready scan`)
+
+## Code
+- [GitHub @sycu8](https://github.com/sycu8)

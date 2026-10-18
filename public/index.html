@@ -6,8 +6,8 @@
     <title data-en="Orange Cloud — Personal Cloudflare showcase">Orange Cloud — Showcase cá nhân trên Cloudflare</title>
     <meta
       name="description"
-      content="Orange Cloud là dự án cá nhân: các bản demo trên Cloudflare Developer Platform. Không máy chủ tự vận hành. Không phải ấn phẩm của Cloudflare, Inc."
-      data-en="Orange Cloud is a personal project: live demos on the Cloudflare Developer Platform. No servers to manage. Not a publication of Cloudflare, Inc."
+      content="Orange Cloud là dự án cá nhân: các bản demo trên Cloudflare Developer Platform. Không máy chủ tự vận hành. Không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc."
+      data-en="Orange Cloud is a personal project: live demos on the Cloudflare Developer Platform. No servers to manage. Not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc."
     />
     <meta name="theme-color" content="#100e0c" id="theme-color" />
     <meta property="og:title" content="Orange Cloud" data-en="Orange Cloud" />
@@ -21,6 +21,7 @@
     <meta property="og:locale" content="vi_VN" />
     <meta property="og:locale:alternate" content="en_US" />
     <link rel="canonical" href="https://orangecloud.vn/" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,11 +35,35 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Orange Cloud",
-        "url": "https://orangecloud.vn/",
-        "description": "Personal showcase of products built on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc.",
-        "dateModified": "2026-10-17"
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://orangecloud.vn/#person",
+            "name": "Cường Lê Sỹ",
+            "alternateName": ["Cuong Le Sy", "Cuong Le", "Sycule"],
+            "url": "https://orangecloud.vn/about/",
+            "sameAs": ["https://github.com/sycu8"],
+            "knowsAbout": ["Cloudflare", "Cloudflare Workers", "Cloudflare Developer Platform", "DNS", "Zero Trust", "Web security"],
+            "knowsLanguage": ["vi", "en"],
+            "description": "Maintains Orange Cloud in a personal capacity. Orange Cloud is not a publication of Cloudflare, Inc. and is not affiliated with Cloudflare, Inc."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://orangecloud.vn/#website",
+            "name": "Orange Cloud",
+            "url": "https://orangecloud.vn/",
+            "inLanguage": "vi",
+            "description": "Personal showcase of products built on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc. and not affiliated with Cloudflare, Inc.",
+            "author": { "@id": "https://orangecloud.vn/#person" },
+            "publisher": { "@id": "https://orangecloud.vn/#person" },
+            "dateModified": "2026-10-18",
+            "hasPart": [
+              { "@type": "WebSite", "name": "OrangeCloud Insights", "url": "https://blog.orangecloud.vn/" },
+              { "@type": "WebSite", "name": "OrangeCloud Onboarding", "url": "https://onboarding.orangecloud.vn/" },
+              { "@type": "WebSite", "name": "CF Ready", "url": "https://ready.orangecloud.vn/" }
+            ]
+          }
+        ]
       }
     </script>
   </head>
@@ -52,11 +77,12 @@
       </a>
       <nav id="site-nav" class="nav-links">
         <a href="#projects" data-en="Projects">Dự án</a>
-        <a href="#about" data-en="About">Giới thiệu</a>
+        <a href="/about/" data-en="About">Giới thiệu</a>
         <a href="#brand" data-en="Brand">Nhận diện</a>
         <a href="#platform" data-en="Platform">Nền tảng</a>
         <a href="#timeline" data-en="Timeline">Mốc</a>
         <a href="#legal" data-en="Legal">Pháp lý</a>
+        <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
       </nav>
       <div class="nav-tools">
         <button
@@ -100,10 +126,10 @@
             </p>
             <div class="actions">
               <a class="btn btn-solid" href="#projects" data-en="View projects">Xem dự án</a>
-              <a class="btn" href="#about" data-en="About">Giới thiệu</a>
+              <a class="btn" href="/about/" data-en="About">Giới thiệu</a>
             </div>
-            <p class="notice" data-en="A personal project. This is not a publication of Cloudflare, Inc.">
-              Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc.
+            <p class="notice" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc.">
+              Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc.
             </p>
           </div>
           <aside class="hero-aside" aria-labelledby="live-label">
@@ -573,16 +599,16 @@
                 <span class="idx">14</span>
                 <span class="id">
                   <span class="name">Orange Cloud Insights</span>
-                  <span class="lede" data-en="A notes repository. Currently only a title.">Repository ghi chú. Hiện mới có tiêu đề.</span>
+                  <span class="lede" data-en="Notes repository, plus the public site at blog.orangecloud.vn.">Repository ghi chú, và trang công khai tại blog.orangecloud.vn.</span>
                 </span>
                 <span class="pill pill-seed" data-en="Seed">Mới mở</span>
               </summary>
               <div class="dossier"><div class="dossier-inner"><div class="dossier-grid">
                 <div class="dossier-copy">
-                  <p data-en="Public repository created in June 2026. No published notes and no application yet. Listed so the status stays accurate.">Repository công khai tạo tháng 6/2026. Chưa có bài viết và chưa có ứng dụng. Vẫn liệt kê để trạng thái trung thực.</p>
-                  <p class="note" data-en="No stack chosen yet. No demo URL.">Chưa chọn stack. Chưa có URL demo.</p>
+                  <p data-en="Public repository created in June 2026. The repository itself has no published notes yet. The public site is blog.orangecloud.vn.">Repository công khai tạo tháng 6/2026. Bản thân repository chưa có bài viết. Trang công khai là blog.orangecloud.vn.</p>
+                  <p class="note" data-en="The GitHub repository has no chosen stack yet. The public site is blog.orangecloud.vn.">Repository GitHub chưa chọn stack. Trang công khai là blog.orangecloud.vn.</p>
                   <div class="actions">
-                    <a class="btn ext" href="https://github.com/sycu8/Orange-Cloud-Insights" target="_blank" rel="noopener noreferrer">GitHub <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+                    <a class="btn ext" href="https://github.com/sycu8/Orange-Cloud-Insights" target="_blank" rel="noopener noreferrer">GitHub <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a> <a class="btn btn-solid ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer"><span data-en="Open site">Mở trang</span> <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
                   </div>
                 </div>
                 <div>
@@ -654,6 +680,9 @@
               </p>
               <p data-en="This page lists selected repositories. It is not every public repo. If a repository is only a title, the card says so. The list will grow. This is not an official Cloudflare publication.">
                 Trang liệt kê các repository được chọn, không phải mọi repo công khai. Repo nào mới có tiêu đề thì thẻ ghi đúng như vậy. Danh sách sẽ còn tăng. Đây không phải ấn phẩm chính thức của Cloudflare.
+              </p>
+              <p>
+                <a class="btn" href="/about/" data-en="About Cuong Le Sy">Giới thiệu Cường Lê Sỹ</a>
               </p>
             </div>
           </div>
@@ -875,15 +904,17 @@
       <div class="wrap foot-grid">
         <div>
           <strong>Orange Cloud</strong>
-          <p data-en="A personal project on the Cloudflare Developer Platform. This is not a publication of Cloudflare, Inc. Original Orbit mark. No official imagery.">
-            Dự án cá nhân trên Cloudflare Developer Platform. Đây không phải ấn phẩm của Cloudflare, Inc. Dấu Orbit gốc. Không dùng hình ảnh chính thức.
+          <p data-en="A personal project on the Cloudflare Developer Platform. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc. Original Orbit mark. No official imagery.">
+            Dự án cá nhân trên Cloudflare Developer Platform. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc. Dấu Orbit gốc. Không dùng hình ảnh chính thức.
           </p>
           <p data-en="If the demos are useful, you can support the work with a coffee. It is voluntary.">
             Nếu các bản demo hữu ích, có thể ủng hộ bằng một ly cà phê. Việc này là tự nguyện.
           </p>
           <nav class="legal-links" aria-label="Chân trang" data-en-aria="Footer">
             <a href="#projects" data-en="Projects">Dự án</a>
+            <a href="/about/" data-en="About">Giới thiệu</a>
             <a href="#legal" data-en="Legal notice">Tuyên bố pháp lý</a>
+            <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog</a>
             <a class="ext" href="https://github.com/sycu8" target="_blank" rel="me noopener noreferrer">GitHub</a>
             <a class="ext" href="https://github.com/sycu8/orange-cloud-vn" target="_blank" rel="noopener noreferrer" data-en="Source">Mã nguồn</a>
           </nav>
@@ -964,7 +995,7 @@
             </article>
           </div>
           <div class="signoff">
-            <span>Cường Lê Sỹ · <span data-en="personal capacity">tư cách cá nhân</span></span>
+            <span><a href="/about/">Cường Lê Sỹ</a> · <span data-en="personal capacity">tư cách cá nhân</span></span>
             <time datetime="2026-10-17">17.10.2026</time>
           </div>
         </div>
