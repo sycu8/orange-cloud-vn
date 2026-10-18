@@ -5,6 +5,16 @@ import {
   legacyRedirect,
   shouldServeNotFound,
 } from "./routes.ts";
+import {
+  buildSnapshotFromHistory,
+  readStatusSnapshot,
+  runStatusChecks,
+  type StatusSnapshot,
+} from "./status.ts";
+
+function hasHistory(snapshot: StatusSnapshot): boolean {
+  return snapshot.monitors.every((monitor) => Array.isArray(monitor.history));
+}
 
 const BASE_CSP = [
   "default-src 'self'",
@@ -20,6 +30,9 @@ const BASE_CSP = [
   "img-src 'self' https://cdn.buymeacoffee.com data:",
   "connect-src 'self'",
 ].join("; ");
+
+/** Refresh on demand when the snapshot is older than this. */
+const STALE_MS = 10 * 60 * 1000;
 
 function safePath(pathname: string): string {
   return pathname.replace(/[^\x20-\x7E]/g, "?").slice(0, 200);
@@ -85,6 +98,62 @@ function methodNotAllowed(allow: string, secure: boolean): Response {
   );
 }
 
+function isStale(checkedAt: string | undefined, now = Date.now()): boolean {
+  if (!checkedAt) return true;
+  const then = Date.parse(checkedAt);
+  if (Number.isNaN(then)) return true;
+  return now - then > STALE_MS;
+}
+
+async function statusResponse(
+  env: Env,
+  ctx: ExecutionContext,
+  method: string,
+  secure: boolean,
+): Promise<Response> {
+  let snapshot = await readStatusSnapshot(env.STATUS_KV);
+  if (!snapshot || isStale(snapshot.checkedAt)) {
+    if (snapshot) {
+      ctx.waitUntil(
+        runStatusChecks(env.STATUS_KV).catch((error) => {
+          console.error(
+            JSON.stringify({
+              message: "status refresh failed",
+              error: error instanceof Error ? error.message : String(error),
+            }),
+          );
+        }),
+      );
+    } else {
+      snapshot = await runStatusChecks(env.STATUS_KV);
+    }
+  } else if (!hasHistory(snapshot)) {
+    snapshot =
+      (await buildSnapshotFromHistory(env.STATUS_KV)) ??
+      (await runStatusChecks(env.STATUS_KV));
+  }
+
+  if (method === "HEAD") {
+    return withSecurity(
+      new Response(null, {
+        status: 200,
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "public, max-age=60",
+        },
+      }),
+      secure,
+    );
+  }
+
+  return withSecurity(
+    Response.json(snapshot, {
+      headers: { "cache-control": "public, max-age=60" },
+    }),
+    secure,
+  );
+}
+
 export default {
   async fetch(request, env, ctx): Promise<Response> {
     const url = new URL(request.url);
@@ -143,6 +212,21 @@ export default {
           }),
           secure,
         );
+      }
+
+      if (url.pathname === "/api/status") {
+        if (method !== "GET" && method !== "HEAD") {
+          return methodNotAllowed("GET, HEAD", secure);
+        }
+
+        console.log(
+          JSON.stringify({
+            message: "status",
+            method,
+          }),
+        );
+
+        return statusResponse(env, ctx, method, secure);
       }
 
       if (url.pathname === "/api/edge-check" && (method === "GET" || method === "HEAD")) {
@@ -207,5 +291,30 @@ export default {
         secure,
       );
     }
+  },
+
+  async scheduled(_controller, env, ctx): Promise<void> {
+    ctx.waitUntil(
+      runStatusChecks(env.STATUS_KV)
+        .then((snapshot) => {
+          console.log(
+            JSON.stringify({
+              message: "status check complete",
+              overall: snapshot.overall,
+              up: snapshot.up,
+              down: snapshot.down,
+              uptime24h: snapshot.uptime24h,
+            }),
+          );
+        })
+        .catch((error) => {
+          console.error(
+            JSON.stringify({
+              message: "scheduled status check failed",
+              error: error instanceof Error ? error.message : String(error),
+            }),
+          );
+        }),
+    );
   },
 } satisfies ExportedHandler<Env>;

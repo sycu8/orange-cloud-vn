@@ -31,9 +31,19 @@ const chips = [...document.querySelectorAll("[data-filter]")];
 const nav = document.querySelector("#site-nav");
 const navToggle = document.querySelector(".nav-toggle");
 const progress = document.querySelector(".progress");
+const statusBar = document.querySelector("#status-bar");
+const statusToggle = document.querySelector("#status-toggle");
+const statusPanel = document.querySelector("#status-panel");
+const statusLabel = document.querySelector("[data-status-label]");
+const statusUptime = document.querySelector("[data-status-uptime]");
+const statusCount = document.querySelector("[data-status-count]");
+const statusList = document.querySelector("[data-status-list]");
+const statUptime = document.querySelector("[data-stat-uptime]");
+const liveLinks = [...document.querySelectorAll("[data-status-host]")];
 
 let filter = "all";
 let query = "";
+let statusPayload = null;
 
 function closeNav() {
   nav?.classList.remove("is-open");
@@ -155,7 +165,10 @@ function openFromHash() {
 }
 
 document.querySelectorAll("[data-set-lang]").forEach((button) => {
-  button.addEventListener("click", () => applyLanguage(button.dataset.setLang || "vi"));
+  button.addEventListener("click", () => {
+    applyLanguage(button.dataset.setLang || "vi");
+    if (statusPayload) renderStatus(statusPayload);
+  });
 });
 
 themeToggle?.addEventListener("click", () => {
@@ -190,7 +203,11 @@ nav?.querySelectorAll("a").forEach((link) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeNav();
+  if (event.key !== "Escape") return;
+  closeNav();
+  if (statusToggle?.getAttribute("aria-expanded") === "true") {
+    setStatusOpen(false);
+  }
 });
 
 function onScroll() {
@@ -200,7 +217,21 @@ function onScroll() {
   progress.style.transform = `scaleX(${value})`;
 }
 
-window.addEventListener("scroll", onScroll, { passive: true });
+window.addEventListener(
+  "scroll",
+  () => {
+    onScroll();
+    if (statusToggle?.getAttribute("aria-expanded") === "true") {
+      positionStatusPanel();
+    }
+  },
+  { passive: true },
+);
+window.addEventListener("resize", () => {
+  if (statusToggle?.getAttribute("aria-expanded") === "true") {
+    positionStatusPanel();
+  }
+});
 window.addEventListener("hashchange", openFromHash);
 onScroll();
 
@@ -212,3 +243,190 @@ try {
 }
 applyLanguage(initial);
 openFromHash();
+
+const overallCopy = {
+  loading: { vi: "Đang kiểm tra tên miền…", en: "Checking domains…" },
+  operational: { vi: "Mọi tên miền đang hoạt động", en: "All domains operational" },
+  degraded: { vi: "Một số tên miền gặp sự cố", en: "Some domains are degraded" },
+  outage: { vi: "Nhiều tên miền đang lỗi", en: "Multiple domains are down" },
+  unknown: { vi: "Chưa có dữ liệu trạng thái", en: "Status data unavailable" },
+};
+
+function currentLang() {
+  return document.documentElement.lang === "en" ? "en" : "vi";
+}
+
+function formatPct(value) {
+  if (typeof value !== "number" || Number.isNaN(value)) return null;
+  return `${value.toFixed(value >= 99.95 ? 2 : 1)}%`;
+}
+
+function positionStatusPanel() {
+  if (!statusBar || !statusPanel) return;
+  const rect = statusBar.getBoundingClientRect();
+  statusPanel.style.setProperty("--status-panel-top", `${Math.round(rect.bottom)}px`);
+}
+
+function setStatusOpen(open) {
+  if (!statusBar || !statusToggle || !statusPanel) return;
+  statusBar.classList.toggle("is-open", open);
+  statusToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) {
+    positionStatusPanel();
+    statusPanel.scrollTop = 0;
+  }
+  statusPanel.hidden = !open;
+  const label =
+    open
+      ? { vi: "Ẩn trạng thái tên miền", en: "Hide domain status" }
+      : { vi: "Xem trạng thái tên miền", en: "Show domain status" };
+  const lang = currentLang();
+  statusToggle.setAttribute("aria-label", label[lang]);
+  statusToggle.dataset.enAria = label.en;
+  statusToggle.dataset.viAria = label.vi;
+}
+
+function renderStatus(payload) {
+  if (!statusBar || !payload) return;
+  statusPayload = payload;
+  const lang = currentLang();
+  const overall = overallCopy[payload.overall] ? payload.overall : "unknown";
+  statusBar.hidden = false;
+  statusBar.dataset.state = overall;
+
+  if (statusLabel) {
+    statusLabel.textContent = overallCopy[overall][lang];
+  }
+
+  const uptimeText = formatPct(payload.uptime24h);
+  if (statusUptime) {
+    statusUptime.textContent = uptimeText
+      ? lang === "en"
+        ? `${uptimeText} uptime (24h)`
+        : `${uptimeText} uptime (24 giờ)`
+      : lang === "en"
+        ? "Collecting uptime…"
+        : "Đang thu thập uptime…";
+  }
+
+  if (statusCount) {
+    const up = typeof payload.up === "number" ? payload.up : 0;
+    const total = Array.isArray(payload.monitors) ? payload.monitors.length : up;
+    statusCount.textContent =
+      lang === "en" ? `${up}/${total} up` : `${up}/${total} đang lên`;
+  }
+
+  if (statUptime) {
+    statUptime.textContent = uptimeText || "—";
+  }
+
+  const byHost = new Map();
+  if (Array.isArray(payload.monitors)) {
+    for (const monitor of payload.monitors) {
+      if (monitor && typeof monitor.host === "string") {
+        byHost.set(monitor.host, monitor);
+      }
+    }
+  }
+
+  liveLinks.forEach((link) => {
+    const host = link.dataset.statusHost || "";
+    const monitor = byHost.get(host);
+    const uptimeNode = link.querySelector("[data-live-uptime]");
+    if (!monitor) {
+      link.removeAttribute("data-state");
+      if (uptimeNode) {
+        uptimeNode.hidden = true;
+        uptimeNode.textContent = "";
+      }
+      return;
+    }
+    link.dataset.state = monitor.status === "up" ? "up" : "down";
+    if (uptimeNode) {
+      const pct = formatPct(monitor.uptime24h);
+      if (pct) {
+        uptimeNode.hidden = false;
+        uptimeNode.textContent = pct;
+      } else {
+        uptimeNode.hidden = true;
+        uptimeNode.textContent = "";
+      }
+    }
+  });
+
+  if (!statusList) return;
+  while (statusList.firstChild) statusList.removeChild(statusList.firstChild);
+
+  const monitors = Array.isArray(payload.monitors) ? payload.monitors : [];
+  monitors.forEach((monitor) => {
+    if (!monitor || typeof monitor !== "object") return;
+    const item = document.createElement("li");
+    item.dataset.state = monitor.status === "up" ? "up" : "down";
+
+    const dot = document.createElement("span");
+    dot.className = "row-dot";
+    dot.setAttribute("aria-hidden", "true");
+
+    const link = document.createElement("a");
+    link.href = typeof monitor.url === "string" ? monitor.url : "#";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    const title = document.createElement("span");
+    title.textContent =
+      lang === "en"
+        ? monitor.nameEn || monitor.name || monitor.host || ""
+        : monitor.name || monitor.nameEn || monitor.host || "";
+    const host = document.createElement("span");
+    host.className = "row-host";
+    host.textContent = monitor.host || "";
+    link.append(title, host);
+
+    const metrics = document.createElement("div");
+    metrics.className = "row-metrics";
+    const strong = document.createElement("strong");
+    const day = formatPct(monitor.uptime24h);
+    const week = formatPct(monitor.uptime7d);
+    strong.textContent = day ? `${day} / 24h` : lang === "en" ? "Collecting…" : "Đang thu…";
+    const sub = document.createElement("span");
+    sub.textContent = week
+      ? `${week} / 7d`
+      : typeof monitor.latencyMs === "number"
+        ? `${Math.round(monitor.latencyMs)} ms`
+        : "—";
+    metrics.append(strong, sub);
+
+    item.append(dot, link, metrics);
+    statusList.append(item);
+  });
+}
+
+statusToggle?.addEventListener("click", () => {
+  const open = statusToggle.getAttribute("aria-expanded") === "true";
+  setStatusOpen(!open);
+});
+
+async function loadStatus() {
+  if (!statusBar) return;
+  statusBar.hidden = false;
+  statusBar.dataset.state = "loading";
+  if (statusLabel) statusLabel.textContent = overallCopy.loading[currentLang()];
+
+  try {
+    const response = await fetch("/api/status", {
+      headers: { accept: "application/json" },
+    });
+    if (!response.ok) throw new Error(`status ${response.status}`);
+    const payload = await response.json();
+    if (!payload || typeof payload !== "object") throw new Error("invalid payload");
+    renderStatus(payload);
+  } catch {
+    statusBar.dataset.state = "unknown";
+    if (statusLabel) statusLabel.textContent = overallCopy.unknown[currentLang()];
+    if (statusUptime) {
+      statusUptime.textContent =
+        currentLang() === "en" ? "Retry later" : "Thử lại sau";
+    }
+  }
+}
+
+loadStatus();

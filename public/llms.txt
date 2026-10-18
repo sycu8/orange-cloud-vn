@@ -4,6 +4,7 @@
 
 ## About
 - [Giới thiệu / About](https://orangecloud.vn/about/): who maintains the site, professional-context disclosure, contact
+- [Status](https://orangecloud.vn/status/): live domain status and rolling uptime
 - [Legal notice](https://orangecloud.vn/#legal): non-affiliation and trademark notice
 
 ## Learning (Vietnamese)

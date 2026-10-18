@@ -1,7 +1,12 @@
 const APEX = "https://orangecloud.vn";
 
 /** HTML documents that are real pages. Any other extensionless HTML 200 is a soft 404. */
-const INDEXABLE_HTML = new Set(["/", "/about", "/tools/edge-coverage"]);
+const INDEXABLE_HTML = new Set([
+  "/",
+  "/about",
+  "/status",
+  "/tools/edge-coverage",
+]);
 
 /**
  * Legacy map from the 2026-10-18 audit (§A.1).
@@ -31,6 +36,8 @@ const CANONICAL_PATH: Record<string, string> = {
   "/index.html": "/",
   "/about": "/about/",
   "/about/index.html": "/about/",
+  "/status": "/status/",
+  "/status/index.html": "/status/",
   "/tools/edge-coverage": "/tools/edge-coverage/",
   "/tools/edge-coverage/index.html": "/tools/edge-coverage/",
 };
