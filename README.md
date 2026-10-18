@@ -27,7 +27,12 @@ npm run check
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-Worker phục vụ static assets, thêm security header, và trả `GET /api/health`.
+Worker phục vụ static assets, thêm security header, và trả:
+
+- `GET /api/health` — health check đơn giản
+- `GET /api/status` — trạng thái + uptime % của các domain dự án (cron 5 phút, lưu KV)
+
+Trang chủ có status bar sticky: tổng trạng thái, uptime 24 giờ, và danh sách từng domain.
 
 Đang chạy: https://orange-cloud-vn.sycu-lee.workers.dev
 

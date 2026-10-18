@@ -78,47 +78,82 @@
   <body>
     <div class="progress" aria-hidden="true"></div>
     <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
-    <header class="nav">
-      <a class="brand" href="#top">
-        <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
-        <span>Orange Cloud</span>
-      </a>
-      <nav id="site-nav" class="nav-links">
-        <a href="#projects" data-en="Projects">Dự án</a>
-        <a href="/about/" data-en="About">Giới thiệu</a>
-        <a href="#brand" data-en="Brand">Nhận diện</a>
-        <a href="#platform" data-en="Platform">Nền tảng</a>
-        <a href="#timeline" data-en="Timeline">Mốc</a>
-        <a href="#legal" data-en="Legal">Pháp lý</a>
-        <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
-      </nav>
-      <div class="nav-tools">
+    <div class="site-chrome">
+      <div
+        class="status-bar"
+        id="status-bar"
+        data-state="loading"
+        hidden
+      >
         <button
-          class="nav-toggle"
+          class="status-bar-summary"
           type="button"
+          id="status-toggle"
           aria-expanded="false"
-          aria-controls="site-nav"
-          data-en-aria="Open menu"
-          aria-label="Mở menu"
+          aria-controls="status-panel"
+          data-en-aria="Show domain status"
+          aria-label="Xem trạng thái tên miền"
         >
-          <span data-en="Menu">Menu</span>
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-copy">
+            <span class="status-label" data-status-label>Đang kiểm tra tên miền…</span>
+            <span class="status-meta">
+              <span data-status-uptime>—</span>
+              <span class="status-sep" aria-hidden="true">·</span>
+              <span data-status-count></span>
+            </span>
+          </span>
+          <span class="status-chevron" aria-hidden="true"></span>
         </button>
-        <button
-          class="theme-toggle"
-          type="button"
-          data-theme-toggle
-          aria-label="Chuyển chế độ sáng hoặc tối"
-          data-en-aria="Switch light or dark mode"
-        >
-          <span class="icon-moon" aria-hidden="true">☾</span>
-          <span class="icon-sun" aria-hidden="true">☀</span>
-        </button>
-        <div class="lang" role="group" aria-label="Ngôn ngữ" data-en-aria="Language">
-          <button type="button" data-set-lang="vi" aria-pressed="true">VI</button>
-          <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+        <div class="status-panel" id="status-panel" hidden>
+          <ul class="status-list" data-status-list></ul>
+          <p class="status-footnote" data-en="Probed every 5 minutes from Cloudflare Workers. Uptime is rolling 24h / 7d.">
+            Kiểm tra mỗi 5 phút từ Cloudflare Workers. Uptime là cửa sổ trượt 24 giờ / 7 ngày.
+          </p>
         </div>
       </div>
-    </header>
+      <header class="nav">
+        <a class="brand" href="#top">
+          <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
+          <span>Orange Cloud</span>
+        </a>
+        <nav id="site-nav" class="nav-links">
+          <a href="#projects" data-en="Projects">Dự án</a>
+          <a href="/about/" data-en="About">Giới thiệu</a>
+          <a href="#brand" data-en="Brand">Nhận diện</a>
+          <a href="#platform" data-en="Platform">Nền tảng</a>
+          <a href="#timeline" data-en="Timeline">Mốc</a>
+          <a href="#legal" data-en="Legal">Pháp lý</a>
+          <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+        </nav>
+        <div class="nav-tools">
+          <button
+            class="nav-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="site-nav"
+            data-en-aria="Open menu"
+            aria-label="Mở menu"
+          >
+            <span data-en="Menu">Menu</span>
+          </button>
+          <button
+            class="theme-toggle"
+            type="button"
+            data-theme-toggle
+            aria-label="Chuyển chế độ sáng hoặc tối"
+            data-en-aria="Switch light or dark mode"
+          >
+            <span class="icon-moon" aria-hidden="true">☾</span>
+            <span class="icon-sun" aria-hidden="true">☀</span>
+          </button>
+          <div class="lang" role="group" aria-label="Ngôn ngữ" data-en-aria="Language">
+            <button type="button" data-set-lang="vi" aria-pressed="true">VI</button>
+            <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+          </div>
+        </div>
+      </header>
+    </div>
 
     <main id="content">
       <section class="hero" id="top">
@@ -143,21 +178,85 @@
           <aside class="hero-aside" aria-labelledby="live-label">
             <p class="eyebrow" id="live-label"><span class="dot" aria-hidden="true"></span><span data-en="Live">Đang chạy</span></p>
             <ul class="live-list">
-              <li><a href="#onboarding">Onboarding <span>onboarding.orangecloud.vn</span></a></li>
-              <li><a href="#ready">CF Ready <span>ready.orangecloud.vn</span></a></li>
-              <li><a href="#launch">OCLaunch <span>launch.orangecloud.vn</span></a></li>
-              <li><a href="#hr">HR Platform <span>hrm.orangecloud.vn</span></a></li>
-              <li><a href="#bhxh">BHXH HR <span>bhxh.orangecloud.vn</span></a></li>
-              <li><a href="#pulse">PulseWatch <span>reputation.orangecloud.vn</span></a></li>
-              <li><a href="#pitch">PitchIntel <span>wcstat.orangecloud.vn</span></a></li>
-              <li><a href="#poker">Poker Faces <span>poker.orangecloud.vn</span></a></li>
+              <li>
+                <a href="#onboarding" data-status-host="onboarding.orangecloud.vn">
+                  <span class="live-name">Onboarding</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">onboarding.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#ready" data-status-host="ready.orangecloud.vn">
+                  <span class="live-name">CF Ready</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">ready.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#launch" data-status-host="launch.orangecloud.vn">
+                  <span class="live-name">OCLaunch</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">launch.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#hr" data-status-host="hrm.orangecloud.vn">
+                  <span class="live-name">HR Platform</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">hrm.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#bhxh" data-status-host="bhxh.orangecloud.vn">
+                  <span class="live-name">BHXH HR</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">bhxh.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#pulse" data-status-host="reputation.orangecloud.vn">
+                  <span class="live-name">PulseWatch</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">reputation.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#pitch" data-status-host="wcstat.orangecloud.vn">
+                  <span class="live-name">PitchIntel</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">wcstat.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#poker" data-status-host="poker.orangecloud.vn">
+                  <span class="live-name">Poker Faces</span>
+                  <span class="live-meta">
+                    <span class="live-uptime" data-live-uptime hidden></span>
+                    <span class="live-host">poker.orangecloud.vn</span>
+                  </span>
+                </a>
+              </li>
             </ul>
           </aside>
         </div>
         <dl class="stats">
-          <div><dt>Live</dt><dd data-en="demo sites">trang demo</dd></div>
+          <div><dt data-stat-live>Live</dt><dd data-en="demo sites">trang demo</dd></div>
           <div><dt>0</dt><dd data-en="servers to manage">Máy chủ cần quản lý</dd></div>
-          <div><dt>~100%</dt><dd data-en="edge uptime">uptime edge</dd></div>
+          <div><dt data-stat-uptime>~100%</dt><dd data-en="24h edge uptime">uptime edge 24 giờ</dd></div>
         </dl>
       </section>
 

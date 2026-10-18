@@ -16,6 +16,16 @@
       "head_sampling_rate": 1
     }
   },
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "STATUS_KV",
+      "id": "0454ed7fa9174871b19fa7e1b79c6881",
+      "preview_id": "1c91e5596bf249ba9c86588e8a8aee8c"
+    }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
