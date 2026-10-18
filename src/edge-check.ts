@@ -185,10 +185,17 @@ export function providerFromCname(target: string): ProviderId | null {
   return null;
 }
 
+/** CDN headers that belong to the origin. `cf-ray` is handled separately. */
 export function providerFromHeaders(headers: Headers): ProviderId | null {
+  const specific = specificProviderFromHeaders(headers);
+  if (specific) return specific;
+  if (hasCloudflareStamp(headers)) return "cloudflare";
+  return null;
+}
+
+function specificProviderFromHeaders(headers: Headers): ProviderId | null {
   const server = (headers.get("server") ?? "").toLowerCase();
   const via = (headers.get("via") ?? "").toLowerCase();
-  if (headers.has("cf-ray") || server.includes("cloudflare")) return "cloudflare";
   if (headers.has("x-amz-cf-id") || headers.has("x-amz-cf-pop")) return "cloudfront";
   if (headers.has("x-served-by") || headers.has("x-fastly-request-id") || via.includes("varnish")) {
     return "fastly";
@@ -207,7 +214,16 @@ export function providerFromHeaders(headers: Headers): ProviderId | null {
   return null;
 }
 
-function headerEvidence(headers: Headers): string[] {
+/**
+ * A Worker subrequest is stamped with `cf-ray` and often `server: cloudflare`
+ * even when the target is not proxied. That pair is not proof of orange-cloud.
+ */
+function hasCloudflareStamp(headers: Headers): boolean {
+  const server = (headers.get("server") ?? "").toLowerCase();
+  return headers.has("cf-ray") || server.includes("cloudflare");
+}
+
+function headerEvidence(headers: Headers, includeCloudflareStamp: boolean): string[] {
   const names = [
     "cf-ray",
     "server",
@@ -223,7 +239,11 @@ function headerEvidence(headers: Headers): string[] {
   const items: string[] = [];
   for (const name of names) {
     const value = headers.get(name);
-    if (value) items.push(`header:${name}=${value.slice(0, 80)}`);
+    if (!value) continue;
+    const stamped =
+      name === "cf-ray" || (name === "server" && value.toLowerCase().includes("cloudflare"));
+    if (stamped && !includeCloudflareStamp) continue;
+    items.push(`header:${name}=${value.slice(0, 80)}`);
   }
   headers.forEach((value, name) => {
     if (name.toLowerCase().startsWith("x-akamai-")) {
@@ -245,18 +265,27 @@ export function classifyHost(input: {
     a: input.records.a.slice(0, 8),
     aaaa: input.records.aaaa.slice(0, 8),
   };
-  const headerProvider = input.headers ? providerFromHeaders(input.headers) : null;
+  const specificHeader = input.headers ? specificProviderFromHeaders(input.headers) : null;
   let cnameProvider: ProviderId | null = null;
   for (const target of records.cname) {
     cnameProvider = providerFromCname(target);
     if (cnameProvider) break;
   }
-  const ipCloudflare = [...records.a, ...records.aaaa].some((ip) => isCloudflareIp(ip));
-  const providerId = headerProvider ?? cnameProvider ?? (ipCloudflare ? "cloudflare" : null);
+  const addresses = [...records.a, ...records.aaaa];
+  const ipCloudflare = addresses.some((ip) => isCloudflareIp(ip));
+  const publicNonCloudflare = addresses.filter((ip) => isPublicIp(ip) && !isCloudflareIp(ip));
+  const dnsCloudflare = ipCloudflare || cnameProvider === "cloudflare";
+  // Published ranges and CDN CNAMEs decide Cloudflare. A cf-ray stamp on a
+  // Worker subrequest must not relabel a non-Cloudflare address.
+  let providerId: ProviderId | null = null;
+  if (dnsCloudflare && publicNonCloudflare.length === 0) providerId = "cloudflare";
+  else if (specificHeader) providerId = specificHeader;
+  else if (cnameProvider && cnameProvider !== "cloudflare") providerId = cnameProvider;
+  else if (dnsCloudflare) providerId = "cloudflare";
   const hasRecords = records.cname.length + records.a.length + records.aaaa.length > 0;
 
   let status: HostStatus;
-  if (!hasRecords && !headerProvider) status = "no_record";
+  if (!hasRecords && !providerId) status = "no_record";
   else if (providerId === "cloudflare") status = "cloudflare";
   else if (providerId) status = "other_cdn";
   else if (hasRecords) status = "direct";
@@ -266,12 +295,11 @@ export function classifyHost(input: {
     ...records.cname.map((value) => `cname:${value}`),
     ...records.a.map((value) => (isCloudflareIp(value) ? `a:${value} cloudflare` : `a:${value}`)),
     ...records.aaaa.map((value) => (isCloudflareIp(value) ? `aaaa:${value} cloudflare` : `aaaa:${value}`)),
-    ...(input.headers ? headerEvidence(input.headers) : []),
+    ...(input.headers ? headerEvidence(input.headers, dnsCloudflare) : []),
     ...input.notes,
   ].slice(0, 16);
 
-  const publicForeign = [...records.a, ...records.aaaa].filter((ip) => isPublicIp(ip) && !isCloudflareIp(ip));
-  const originExposed = publicForeign.length > 0 && status !== "other_cdn" && status !== "no_record";
+  const originExposed = publicNonCloudflare.length > 0 && status !== "other_cdn" && status !== "no_record";
   if (originExposed) evidence.push("origin_ip_public");
 
   return {
@@ -615,7 +643,7 @@ function json(body: unknown, status: number, cacheControl: string, extra?: Recor
 }
 
 function cacheRequest(domain: string): Request {
-  return new Request(`https://edge-check.cache/v1/${domain}`);
+  return new Request(`https://edge-check.cache/v2/${domain}`);
 }
 
 async function readCache(domain: string): Promise<Response | null> {

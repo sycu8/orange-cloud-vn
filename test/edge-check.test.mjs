@@ -135,6 +135,10 @@ test("cname and header signals classify the expected provider", () => {
   assert.equal(providerFromCname("notcloudflare.net"), null);
 
   assert.equal(providerFromHeaders(headers({ "cf-ray": "abc-SIN", server: "cloudflare" })), "cloudflare");
+  assert.equal(
+    providerFromHeaders(headers({ "cf-ray": "abc-PDX", server: "cloudflare", "x-served-by": "cache-sjc" })),
+    "fastly",
+  );
   assert.equal(providerFromHeaders(headers({ "x-amz-cf-id": "id", "x-amz-cf-pop": "SIN" })), "cloudfront");
   assert.equal(providerFromHeaders(headers({ via: "1.1 varnish" })), "fastly");
   assert.equal(providerFromHeaders(headers({ "x-fastly-request-id": "req" })), "fastly");
@@ -196,11 +200,25 @@ test("classification prefers headers, then cname, then cloudflare addresses", ()
     role: "www",
     host: "www.example.com",
     records: { cname: ["d111.cloudfront.net"], a: [], aaaa: [] },
-    headers: headers({ "cf-ray": "zzz-HAN" }),
+    headers: headers({ "cf-ray": "zzz-HAN", server: "cloudflare" }),
     notes: [],
   });
-  assert.equal(headerWins.status, "cloudflare");
-  assert.equal(headerWins.provider, "Cloudflare");
+  assert.equal(headerWins.status, "other_cdn");
+  assert.equal(headerWins.provider, "Amazon CloudFront");
+  assert.equal(headerWins.evidence.some((item) => item.includes("cf-ray")), false);
+
+  const stampedOrigin = classifyHost({
+    role: "apex",
+    host: "github.com",
+    records: { cname: [], a: ["20.29.134.23"], aaaa: [] },
+    headers: headers({ "cf-ray": "a4c887c50b95ff0f-PDX", server: "cloudflare" }),
+    notes: [],
+  });
+  assert.equal(stampedOrigin.status, "direct");
+  assert.equal(stampedOrigin.provider, null);
+  assert.equal(stampedOrigin.originExposed, true);
+  assert.ok(stampedOrigin.evidence.includes("a:20.29.134.23"));
+  assert.equal(stampedOrigin.evidence.some((item) => item.includes("cf-ray") || item.includes("server=cloudflare")), false);
 });
 
 test("recommendation rules stay informational", () => {

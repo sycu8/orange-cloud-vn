@@ -1,9 +1,9 @@
 /**
  * Published Cloudflare proxy ranges.
  * Source: https://www.cloudflare.com/ips-v4 and https://www.cloudflare.com/ips-v6
- * Retrieved 2026-10-18. These are the anycast ranges used when a DNS record is
- * proxied (orange cloud). They do not include every Cloudflare IP, such as
- * the 1.1.1.1 resolver's IPv4 address.
+ * Verified again 2026-10-18. The published lists were unchanged.
+ * These are the anycast ranges used when a DNS record is proxied (orange cloud).
+ * They do not include every Cloudflare IP, such as the 1.1.1.1 resolver.
  */
 export const CLOUDFLARE_IPV4 = [
   "173.245.48.0/20",
