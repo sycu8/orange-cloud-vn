@@ -115,6 +115,32 @@ test("about page uses on-site facts and is listed in the sitemap", () => {
   assertLeaves(about, "about");
 });
 
+test("open graph banner is a same-origin png and the tags do not name a twitter site", () => {
+  const png = readFileSync(new URL("../public/og.png", import.meta.url));
+  const template = readFileSync(new URL("../design/og.html", import.meta.url), "utf8");
+  const worker = readFileSync(new URL("../src/index.ts", import.meta.url), "utf8");
+  assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  assert.equal(png.readUInt32BE(16), 1200);
+  assert.equal(png.readUInt32BE(20), 630);
+  assert.ok(png.length < 300 * 1024, `og.png is ${png.length} bytes`);
+  assert.match(template, /Showcase cá nhân trên Cloudflare Developer Platform\./);
+  assert.match(template, /Không máy chủ tự vận hành\./);
+  assert.match(template, /orangecloud\.vn/);
+  assert.match(template, /be-vietnam-pro-700-vi\.woff2/);
+  assert.doesNotMatch(template, /cloudflare\.com\/.*logo|cdnjs\.cloudflare\.com/i);
+  for (const html of [home, about]) {
+    assert.match(html, /property="og:image" content="https:\/\/orangecloud\.vn\/og\.png\?v=1"/);
+    assert.match(html, /property="og:image:type" content="image\/png"/);
+    assert.match(html, /property="og:image:width" content="1200"/);
+    assert.match(html, /property="og:image:height" content="630"/);
+    assert.match(html, /property="og:image:alt" content="Orange Cloud — Showcase cá nhân trên Cloudflare Developer Platform\. Không máy chủ tự vận hành\."/);
+    assert.match(html, /name="twitter:card" content="summary_large_image"/);
+    assert.match(html, /name="twitter:image" content="https:\/\/orangecloud\.vn\/og\.png\?v=1"/);
+    assert.doesNotMatch(html, /twitter:site/);
+  }
+  assert.match(worker, /img-src 'self'/);
+});
+
 test("llms.txt, robots.txt, and favicon follow the apex audit", () => {
   assert.match(llms, /# Orange Cloud/);
   assert.match(llms, /https:\/\/orangecloud\.vn\/about\//);
@@ -178,6 +204,7 @@ function assetEnv(softHtml) {
     ["/404.html", "<!doctype html><title>missing</title>"],
     ["/llms.txt", "# Orange Cloud\n"],
     ["/favicon.ico", "ico"],
+    ["/og.png", readFileSync(new URL("../public/og.png", import.meta.url))],
   ]);
   return {
     ASSETS: {
@@ -197,7 +224,9 @@ function assetEnv(softHtml) {
             ? "text/html"
             : key.endsWith(".txt")
               ? "text/plain; charset=utf-8"
-              : "application/octet-stream";
+              : key.endsWith(".png")
+                ? "image/png"
+                : "application/octet-stream";
           return new Response(body, { status: 200, headers: { "content-type": type } });
         }
         return new Response("missing", { status: 404, headers: { "content-type": "text/plain" } });
@@ -254,4 +283,12 @@ test("unknown paths return a real 404 and canonical aliases redirect", async () 
   const llmsRes = await worker.fetch(new Request("https://orangecloud.vn/llms.txt"), env);
   assert.equal(llmsRes.status, 200);
   assert.match(await llmsRes.text(), /Orange Cloud/);
+
+  const og = await worker.fetch(new Request("https://orangecloud.vn/og.png?v=1"), env);
+  assert.equal(og.status, 200);
+  assert.match(og.headers.get("content-type"), /^image\/png\b/i);
+  assert.match(og.headers.get("content-security-policy"), /img-src 'self'/);
+  assert.equal(og.headers.get("x-content-type-options"), "nosniff");
+  const bytes = new Uint8Array(await og.arrayBuffer());
+  assert.equal(Buffer.from(bytes.subarray(0, 8)).toString("hex"), "89504e470d0a1a0a");
 });
