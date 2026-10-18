@@ -497,9 +497,11 @@ function summarize(hosts: HostResult[]): Record<HostStatus, number> {
 /**
  * Fallback windows for local development. `wrangler dev` can serve each request
  * from a different isolate, and the simulated rate-limit binding does not share
- * counters across those isolates. On localhost the worker asks the optional
- * helper at 127.0.0.1:8791 (`node scripts/local-edge-limit.mjs`), which is one
- * process for every isolate. Production uses `env.EDGE_CHECK_LIMITER` only.
+ * counters across those isolates, so an "allow" from the binding is not a cap.
+ * On localhost the worker asks the optional helper at 127.0.0.1:8791
+ * (`node scripts/local-edge-limit.mjs`), which is one process for every isolate.
+ * If that helper is not running, this in-memory window is the cap instead.
+ * Production uses `env.EDGE_CHECK_LIMITER` only.
  */
 const localBuckets = new Map<string, number[]>();
 const LOCAL_LIMIT_URL = "http://127.0.0.1:8791/consume";
@@ -583,10 +585,19 @@ export async function enforceRateLimit(
   }
   if (isLocalDev(request)) {
     const helper = await localHelperConsume(key, limit);
-    if (helper !== null) {
-      if (!helper) console.log(JSON.stringify({ message: "edge-check limit", gate: "helper", kind }));
-      return { limited: !helper };
+    if (helper === false) {
+      console.log(JSON.stringify({ message: "edge-check limit", gate: "helper", kind }));
+      return { limited: true };
     }
+    if (helper === null && !localConsume(key, limit)) {
+      console.log(JSON.stringify({ message: "edge-check limit", gate: "memory", kind }));
+      return { limited: true };
+    }
+    if (bindingState === "deny") {
+      console.log(JSON.stringify({ message: "edge-check limit", gate: "binding", kind }));
+      return { limited: true };
+    }
+    return { limited: false };
   }
   if (bindingState === "deny") {
     console.log(JSON.stringify({ message: "edge-check limit", gate: "binding", kind }));

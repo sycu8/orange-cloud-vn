@@ -12,6 +12,7 @@ import {
   enforceRateLimit,
   handleEdgeCheck,
   handleEdgeContact,
+  resetLocalRateLimitForTests,
   hostsForDomain,
   inspectDomain,
   normalizeDomain,
@@ -343,6 +344,7 @@ test("lookup rate limit returns the Vietnamese 429 before any DNS", async () => 
 });
 
 test("localhost still caps checks when the binding always allows", async () => {
+  resetLocalRateLimitForTests();
   let calls = 0;
   const env = {
     EDGE_CHECK_LIMITER: {
@@ -352,7 +354,8 @@ test("localhost still caps checks when the binding always allows", async () => {
       },
     },
   };
-  const ip = "203.0.113.22";
+  // Fresh address so a leftover helper window from another run cannot pre-fill the bucket.
+  const ip = `198.51.100.${(process.pid % 200) + 1}`;
   for (let index = 0; index < 5; index += 1) {
     const outcome = await enforceRateLimit(
       request("http://127.0.0.1:8787/api/edge-check?domain=example.com", ip),
