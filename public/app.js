@@ -271,7 +271,10 @@ function setStatusOpen(open) {
   if (!statusBar || !statusToggle || !statusPanel) return;
   statusBar.classList.toggle("is-open", open);
   statusToggle.setAttribute("aria-expanded", open ? "true" : "false");
-  if (open) positionStatusPanel();
+  if (open) {
+    positionStatusPanel();
+    statusPanel.scrollTop = 0;
+  }
   statusPanel.hidden = !open;
   const label =
     open
