@@ -1446,6 +1446,224 @@ h3 {
   }
 }
 
+.ecc {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.ecc .page-title,
+.ecc h2,
+.ecc button,
+.ecc input,
+.ecc textarea {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.ecc-lookup {
+  margin-top: 1.6rem;
+}
+
+.ecc-lookup label,
+.ecc-form label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.ecc-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.ecc-row input,
+.ecc-form input,
+.ecc-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-elev);
+  color: var(--ink);
+  padding: 0.75rem 0.9rem;
+}
+
+.ecc-row input {
+  flex: 1 1 16rem;
+  width: auto;
+  min-width: 0;
+}
+
+.ecc-form {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.ecc-form textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.ecc-alert {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+}
+
+.ecc-results {
+  margin-top: 1.4rem;
+}
+
+.ecc-summary {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.ecc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.6rem;
+}
+
+.ecc-table th,
+.ecc-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.75rem 0.55rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.ecc-table th {
+  color: var(--faint);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.ecc-host,
+.ecc-dns,
+.ecc-evidence {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.ecc-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  border: 1px solid var(--line);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ecc-badge-cloudflare {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--btn-solid-ink);
+}
+
+.ecc-badge-other_cdn {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+
+.ecc-badge-direct {
+  color: var(--muted);
+}
+
+.ecc-badge-no_record {
+  color: var(--faint);
+}
+
+.ecc-recs {
+  list-style: none;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ecc-rec {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  background: var(--bg-elev);
+}
+
+.ecc-rec p {
+  margin: 0.2rem 0;
+}
+
+.ecc-rec-good {
+  border-color: color-mix(in srgb, var(--live) 55%, var(--line));
+}
+
+.ecc-rec-warn {
+  border-color: color-mix(in srgb, var(--amber) 70%, var(--line));
+}
+
+.ecc-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1rem;
+}
+
+.ecc-hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 720px) {
+  .ecc-table thead {
+    display: none;
+  }
+
+  .ecc-table,
+  .ecc-table tbody,
+  .ecc-table tr,
+  .ecc-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .ecc-table tr {
+    margin: 0 0 0.8rem;
+    padding: 0.35rem 0.75rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--bg-elev);
+  }
+
+  .ecc-table td {
+    display: grid;
+    grid-template-columns: 7.2rem minmax(0, 1fr);
+    gap: 0.45rem;
+    border-bottom: none;
+    padding: 0.45rem 0;
+  }
+
+  .ecc-table td::before {
+    content: attr(data-label);
+    color: var(--faint);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.75rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
