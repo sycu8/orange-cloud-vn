@@ -186,6 +186,7 @@ input {
 }
 
 .status-bar {
+  position: relative;
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg-elev) 94%, transparent);
   backdrop-filter: blur(16px);
@@ -283,7 +284,19 @@ input {
 }
 
 .status-panel {
-  padding: 0 var(--pad) 0.85rem;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--status-panel-top, 3rem);
+  z-index: 40;
+  max-height: min(70vh, 32rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.55rem var(--pad) 0.85rem;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg-elev) 98%, transparent);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 40px var(--shadow);
 }
 
 .status-list {
