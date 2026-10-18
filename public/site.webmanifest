@@ -4,8 +4,8 @@
   "description": "Personal showcase on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0908",
-  "theme_color": "#0b0908",
+  "background_color": "#100e0c",
+  "theme_color": "#100e0c",
   "lang": "vi",
   "icons": [
     {

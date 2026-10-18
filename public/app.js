@@ -50,7 +50,7 @@ function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", next);
   document.documentElement.style.colorScheme = next;
   if (themeColorMeta) {
-    themeColorMeta.setAttribute("content", next === "light" ? "#f7f4ef" : "#0b0908");
+    themeColorMeta.setAttribute("content", next === "light" ? "#f7f4ef" : "#100e0c");
   }
   if (themeToggle) {
     const label =
