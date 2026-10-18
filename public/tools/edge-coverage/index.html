@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-en="Edge coverage check · Orange Cloud">Kiểm tra phủ edge · Orange Cloud</title>
+    <meta
+      name="description"
+      content="Kiểm tra các hostname phổ biến của một tên miền đang đi qua Cloudflare, CDN khác, hay phân giải thẳng. Dự án cá nhân, không phải ấn phẩm của Cloudflare, Inc. và không liên kết với Cloudflare, Inc."
+      data-en="Check whether common hostnames for a domain go through Cloudflare, another CDN, or resolve directly. A personal project, not a publication of Cloudflare, Inc., and not affiliated with Cloudflare, Inc."
+    />
+    <meta name="theme-color" content="#100e0c" id="theme-color" />
+    <meta property="og:title" content="Kiểm tra phủ edge · Orange Cloud" data-en="Edge coverage check · Orange Cloud" />
+    <meta
+      property="og:description"
+      content="Dự án cá nhân của Cường Lê Sỹ. Không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc."
+      data-en="Personal project by Cuong Le Sy. Not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://orangecloud.vn/tools/edge-coverage/" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:image" content="https://orangecloud.vn/og.png?v=1" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Orange Cloud — Showcase cá nhân trên Cloudflare Developer Platform. Không máy chủ tự vận hành." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://orangecloud.vn/og.png?v=1" />
+    <meta name="twitter:image:alt" content="Orange Cloud — Showcase cá nhân trên Cloudflare Developer Platform. Không máy chủ tự vận hành." />
+    <link rel="canonical" href="https://orangecloud.vn/tools/edge-coverage/" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://orangecloud.vn/#person",
+            "name": "Cường Lê Sỹ",
+            "alternateName": ["Cuong Le Sy", "Cuong Le", "Sycule"],
+            "url": "https://orangecloud.vn/about/",
+            "sameAs": ["https://github.com/sycu8"],
+            "knowsAbout": ["Cloudflare", "Cloudflare Workers", "DNS", "Web security"],
+            "knowsLanguage": ["vi", "en"],
+            "description": "Maintains Orange Cloud in a personal capacity. Orange Cloud is not a publication of Cloudflare, Inc. and is not affiliated with Cloudflare, Inc."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://orangecloud.vn/#website",
+            "name": "Orange Cloud",
+            "url": "https://orangecloud.vn/",
+            "inLanguage": "vi",
+            "description": "Personal showcase of products built on the Cloudflare Developer Platform. Not a publication of Cloudflare, Inc. and not affiliated with Cloudflare, Inc.",
+            "author": { "@id": "https://orangecloud.vn/#person" },
+            "publisher": { "@id": "https://orangecloud.vn/#person" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://orangecloud.vn/tools/edge-coverage/#webpage",
+            "url": "https://orangecloud.vn/tools/edge-coverage/",
+            "name": "Kiểm tra phủ edge",
+            "inLanguage": "vi",
+            "isPartOf": { "@id": "https://orangecloud.vn/#website" },
+            "about": { "@id": "https://orangecloud.vn/#person" },
+            "dateModified": "2026-10-18",
+            "description": "Personal project tool. Not a publication of Cloudflare, Inc. and not affiliated with Cloudflare, Inc."
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="ecc">
+    <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
+    <header class="nav">
+      <a class="brand" href="/">
+        <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
+        <span>Orange Cloud</span>
+      </a>
+      <nav id="site-nav" class="nav-links" aria-label="Trang" data-en-aria="Pages">
+        <a href="/#projects" data-en="Projects">Dự án</a>
+        <a href="/about/" data-en="About">Giới thiệu</a>
+        <a href="/#brand" data-en="Brand">Nhận diện</a>
+        <a href="/#platform" data-en="Platform">Nền tảng</a>
+        <a href="/#timeline" data-en="Timeline">Mốc</a>
+        <a href="/#legal" data-en="Legal">Pháp lý</a>
+        <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+      </nav>
+      <div class="nav-tools">
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-en-aria="Open menu"
+          aria-label="Mở menu"
+        >
+          <span data-en="Menu">Menu</span>
+        </button>
+        <button
+          class="theme-toggle"
+          type="button"
+          data-theme-toggle
+          aria-label="Chuyển chế độ sáng hoặc tối"
+          data-en-aria="Switch light or dark mode"
+        >
+          <span class="icon-moon" aria-hidden="true">☾</span>
+          <span class="icon-sun" aria-hidden="true">☀</span>
+        </button>
+        <div class="lang" role="group" aria-label="Ngôn ngữ" data-en-aria="Language">
+          <button type="button" data-set-lang="vi" aria-pressed="true">VI</button>
+          <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="content">
+      <section class="profile">
+        <div class="wrap">
+          <p class="eyebrow">Personal project · tool</p>
+          <h1 class="page-title" data-en="Edge coverage check">Kiểm tra phủ edge</h1>
+          <p class="lede" data-en="See whether common hostnames for a domain go through Cloudflare, another CDN, or straight to an origin.">
+            Xem các hostname phổ biến của một tên miền đang đi qua Cloudflare, CDN khác, hay phân giải thẳng tới origin.
+          </p>
+          <p class="notice" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc.">
+            Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc.
+          </p>
+
+          <form id="ecc-lookup" class="ecc-lookup" action="/tools/edge-coverage/" method="get">
+            <label for="ecc-domain" data-en="Domain">Tên miền</label>
+            <div class="ecc-row">
+              <input
+                id="ecc-domain"
+                name="domain"
+                type="text"
+                inputmode="url"
+                autocomplete="off"
+                spellcheck="false"
+                maxlength="253"
+                required
+                placeholder="vidu.com"
+                data-en-placeholder="example.com"
+              />
+              <button class="btn btn-solid" id="ecc-submit" type="submit" data-en="Check">Kiểm tra</button>
+            </div>
+          </form>
+          <p class="note" data-en="Informational estimate from public DNS and HTTP headers. Not an official Cloudflare report.">
+            Ước lượng mang tính thông tin, dựa trên DNS công khai và header HTTP. Không phải báo cáo chính thức của Cloudflare.
+          </p>
+          <p id="ecc-alert" class="ecc-alert" role="alert" hidden></p>
+          <div id="ecc-results" class="ecc-results" aria-live="polite"></div>
+
+          <section id="ecc-contact" hidden>
+            <h2 data-en="Leave a note">Để lại lời nhắn</h2>
+            <p data-en="Optional. A person can look at the domain you just checked.">
+              Không bắt buộc. Một người có thể xem lại tên miền vừa kiểm tra.
+            </p>
+            <p class="note" data-en="Prototype only. This form is not sent anywhere.">
+              Bản thử nghiệm, chưa gửi đi đâu.
+            </p>
+            <form id="ecc-contact-form" class="ecc-form" action="/tools/edge-coverage/" method="post">
+              <label for="ecc-name" data-en="Name">Họ tên</label>
+              <input id="ecc-name" name="name" type="text" autocomplete="name" maxlength="80" required />
+              <label for="ecc-email">Email</label>
+              <input id="ecc-email" name="email" type="email" autocomplete="email" maxlength="120" required />
+              <label for="ecc-company" data-en="Company">Công ty</label>
+              <input id="ecc-company" name="company" type="text" autocomplete="organization" maxlength="80" />
+              <label for="ecc-message" data-en="Message">Lời nhắn</label>
+              <textarea id="ecc-message" name="message" maxlength="1000" required></textarea>
+              <p class="ecc-hp" aria-hidden="true">
+                <label for="ecc-website">Website</label>
+                <input id="ecc-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+              </p>
+              <button class="btn btn-solid" id="ecc-send" type="submit" data-en="Send">Gửi</button>
+            </form>
+            <p id="ecc-sent" class="notice" hidden data-en="Saved on this prototype only. Nothing was sent anywhere.">
+              Đã ghi nhận trên bản thử. Thông tin chưa được gửi đi đâu.
+            </p>
+            <p id="ecc-contact-error" class="ecc-alert" role="alert" hidden></p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <strong>Orange Cloud</strong>
+        <p class="notice" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc.">
+          Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc.
+        </p>
+        <nav class="legal-links" aria-label="Chân trang" data-en-aria="Footer">
+          <a href="/" data-en="Home">Trang chủ</a>
+          <a href="/#projects" data-en="Projects">Dự án</a>
+          <a href="/#legal" data-en="Legal notice">Tuyên bố pháp lý</a>
+          <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog</a>
+          <a class="ext" href="https://github.com/sycu8" target="_blank" rel="me noopener noreferrer">GitHub</a>
+        </nav>
+        <div class="signoff">
+          <span>Cường Lê Sỹ · <span data-en="personal capacity">tư cách cá nhân</span></span>
+          <time datetime="2026-10-18">18.10.2026</time>
+        </div>
+      </div>
+    </footer>
+    <script src="/app.js" defer></script>
+    <script src="/edge-check.js" defer></script>
+  </body>
+</html>
