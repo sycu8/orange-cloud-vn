@@ -47,16 +47,13 @@
     <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
     <header class="nav">
       <a class="brand" href="#top">
-        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-          <rect width="32" height="32" rx="8" fill="#1a120e" />
-          <circle cx="16" cy="16" r="9" fill="none" stroke="#ff4d00" stroke-width="2" />
-          <circle cx="16" cy="16" r="3.2" fill="#ffc56b" />
-        </svg>
-        Orange Cloud
+        <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
+        <span>Orange Cloud</span>
       </a>
       <nav id="site-nav" class="nav-links">
         <a href="#projects" data-en="Projects">Dự án</a>
         <a href="#about" data-en="About">Giới thiệu</a>
+        <a href="#brand" data-en="Brand">Nhận diện</a>
         <a href="#platform" data-en="Platform">Nền tảng</a>
         <a href="#timeline" data-en="Timeline">Mốc</a>
         <a href="#legal" data-en="Legal">Pháp lý</a>
@@ -622,7 +619,7 @@
           </div>
           <div class="studio-grid">
             <aside class="founder">
-              <div class="mono-mark" aria-hidden="true">OC</div>
+              <img class="mono-mark" src="/brand/mark.svg" width="68" height="68" alt="" />
               <h3 data-en="What this is">Đây là gì</h3>
               <p data-en="A personal project and demo showcase on the Cloudflare Developer Platform.">
                 Dự án cá nhân và showcase demo trên Cloudflare Developer Platform.
@@ -663,11 +660,103 @@
         </div>
       </section>
 
+      <section id="brand">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="kicker">03 — Brand</p>
+              <h2 data-en="Brand identity">Bộ nhận diện</h2>
+            </div>
+          </div>
+          <p class="lede brand-intro" data-en="An original mark for Orange Cloud: an open orbit and a warm core. Edge network outside, product at the center — not a Cloudflare logo.">
+            Dấu hiệu gốc của Orange Cloud: quỹ đạo mở và lõi ấm. Mạng edge bên ngoài, sản phẩm ở tâm — không phải logo Cloudflare.
+          </p>
+
+          <div class="brand-hero-lockup" aria-label="Orange Cloud">
+            <img src="/brand/mark.svg" width="88" height="88" alt="" />
+            <div>
+              <p class="brand-word">Orange Cloud</p>
+              <p class="brand-tag" data-en="Personal Cloudflare showcase">Showcase cá nhân trên Cloudflare</p>
+            </div>
+          </div>
+
+          <div class="brand-grid">
+            <figure class="brand-tile brand-tile-dark">
+              <img src="/brand/mark.svg" width="96" height="96" alt="" />
+              <figcaption data-en="Mark on dark">Mark trên nền tối</figcaption>
+            </figure>
+            <figure class="brand-tile brand-tile-light">
+              <img src="/brand/mark.svg" width="96" height="96" alt="" />
+              <figcaption data-en="Mark on light">Mark trên nền sáng</figcaption>
+            </figure>
+            <figure class="brand-tile brand-tile-app">
+              <img src="/brand/mark-app.svg" width="96" height="96" alt="" />
+              <figcaption data-en="App icon">Icon ứng dụng</figcaption>
+            </figure>
+            <figure class="brand-tile brand-tile-mono">
+              <svg class="brand-mono-svg" width="96" height="96" viewBox="0 0 64 64" aria-hidden="true">
+                <path d="M46.8 14.4a22 22 0 1 0 5.1 22.8" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
+                <circle cx="32" cy="32" r="9" fill="currentColor" />
+                <circle cx="49.2" cy="18.2" r="3.1" fill="currentColor" />
+              </svg>
+              <figcaption data-en="Monochrome">Đơn sắc</figcaption>
+            </figure>
+          </div>
+
+          <div class="brand-meta">
+            <div>
+              <h3 data-en="Color">Màu</h3>
+              <ul class="swatches" aria-label="Brand colors" data-en-aria="Brand colors">
+                <li><span class="swatch" style="--sw:#FF5A14"></span><code>Orange</code><span>#FF5A14</span></li>
+                <li><span class="swatch" style="--sw:#FFC56B"></span><code>Amber</code><span>#FFC56B</span></li>
+                <li><span class="swatch" style="--sw:#100E0C"></span><code>Ink</code><span>#100E0C</span></li>
+                <li><span class="swatch" style="--sw:#FFF8F0"></span><code>Paper</code><span>#FFF8F0</span></li>
+              </ul>
+            </div>
+            <div>
+              <h3 data-en="Type">Chữ</h3>
+              <ul class="type-spec">
+                <li>
+                  <span class="type-display">Syne</span>
+                  <span data-en="Display / wordmark">Tiêu đề / wordmark</span>
+                </li>
+                <li>
+                  <span class="type-body">Be Vietnam Pro</span>
+                  <span data-en="Body / UI">Nội dung / giao diện</span>
+                </li>
+                <li>
+                  <span class="type-mono">JetBrains Mono</span>
+                  <span data-en="Labels / code">Nhãn / mã</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 data-en="Idea">Ý tưởng</h3>
+              <ul class="brand-rules">
+                <li data-en="Open ring = global edge path">Vòng mở = đường edge toàn cầu</li>
+                <li data-en="Core = product / Orange">Lõi = sản phẩm / Orange</li>
+                <li data-en="Node = live PoP">Chấm nút = PoP đang chạy</li>
+                <li data-en="Never use Cloudflare official art">Không dùng hình chính thức của Cloudflare</li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="fine brand-assets">
+            <span data-en="Assets:">Tệp:</span>
+            <a class="ext" href="/brand/mark.svg">mark.svg</a>
+            <a class="ext" href="/brand/mark-app.svg">mark-app.svg</a>
+            <a class="ext" href="/brand/mark-mono.svg">mark-mono.svg</a>
+            <a class="ext" href="/brand/lockup.svg">lockup.svg</a>
+            <a class="ext" href="/favicon.svg">favicon.svg</a>
+          </p>
+        </div>
+      </section>
+
       <section id="platform">
         <div class="wrap">
           <div class="section-head">
             <div>
-              <p class="kicker">03 — Platform</p>
+              <p class="kicker">04 — Platform</p>
               <h2 data-en="Cloudflare services in use">Dịch vụ Cloudflare đã dùng</h2>
             </div>
           </div>
@@ -723,7 +812,7 @@
         <div class="wrap">
           <div class="section-head">
             <div>
-              <p class="kicker">04 — Timeline</p>
+              <p class="kicker">05 — Timeline</p>
               <h2 data-en="Timeline">Mốc thời gian</h2>
             </div>
           </div>
@@ -786,8 +875,8 @@
       <div class="wrap foot-grid">
         <div>
           <strong>Orange Cloud</strong>
-          <p data-en="A personal project on the Cloudflare Developer Platform. This is not a publication of Cloudflare, Inc. Original monogram. No official imagery.">
-            Dự án cá nhân trên Cloudflare Developer Platform. Đây không phải ấn phẩm của Cloudflare, Inc. Monogram gốc. Không dùng hình ảnh chính thức.
+          <p data-en="A personal project on the Cloudflare Developer Platform. This is not a publication of Cloudflare, Inc. Original Orbit mark. No official imagery.">
+            Dự án cá nhân trên Cloudflare Developer Platform. Đây không phải ấn phẩm của Cloudflare, Inc. Dấu Orbit gốc. Không dùng hình ảnh chính thức.
           </p>
           <p data-en="If the demos are useful, you can support the work with a coffee. It is voluntary.">
             Nếu các bản demo hữu ích, có thể ủng hộ bằng một ly cà phê. Việc này là tự nguyện.
@@ -833,8 +922,8 @@
             </article>
             <article>
               <h3 data-en="4. Images">4. Hình ảnh</h3>
-              <p data-en="The mark on this page is an original monogram: a ring and a dot. The page does not use official logos, wordmarks, mascots, or marketing images of Cloudflare or of any same-named organization. The Buy Me a Coffee button is that service's own image and appears only as a personal support link.">
-                Dấu trên trang là monogram gốc: một vòng và một chấm. Trang không dùng logo, wordmark, linh vật hay ảnh thương mại chính thức của Cloudflare hoặc tổ chức cùng tên. Nút Buy Me a Coffee là hình của dịch vụ đó và chỉ xuất hiện như liên kết ủng hộ cá nhân.
+              <p data-en="The mark on this page is an original Orbit mark: an open ring, a warm core, and an edge node. The page does not use official logos, wordmarks, mascots, or marketing images of Cloudflare or of any same-named organization. The Buy Me a Coffee button is that service's own image and appears only as a personal support link.">
+                Dấu trên trang là Orbit gốc: vòng mở, lõi ấm và một nút edge. Trang không dùng logo, wordmark, linh vật hay ảnh thương mại chính thức của Cloudflare hoặc tổ chức cùng tên. Nút Buy Me a Coffee là hình của dịch vụ đó và chỉ xuất hiện như liên kết ủng hộ cá nhân.
               </p>
             </article>
             <article>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Orange Cloud mark">
+  <title>Orange Cloud</title>
+  <!-- Orbit ring: open arc = edge network / Cloud -->
+  <path
+    d="M46.8 14.4a22 22 0 1 0 5.1 22.8"
+    fill="none"
+    stroke="#FF5A14"
+    stroke-width="4.5"
+    stroke-linecap="round"
+  />
+  <!-- Warm core: Orange -->
+  <circle cx="32" cy="32" r="9" fill="#FFC56B"/>
+  <!-- Edge node -->
+  <circle cx="49.2" cy="18.2" r="3.1" fill="#FF5A14"/>
+</svg>

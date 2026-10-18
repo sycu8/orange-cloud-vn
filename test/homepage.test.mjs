@@ -52,6 +52,19 @@ test("worker sets a content security policy and a personal health payload", () =
   assert.match(css, /Be Vietnam Pro/);
 });
 
+test("brand identity assets and section exist", () => {
+  const mark = readFileSync(new URL("../public/brand/mark.svg", import.meta.url), "utf8");
+  const favicon = readFileSync(new URL("../public/favicon.svg", import.meta.url), "utf8");
+  assert.match(html, /id="brand"/);
+  assert.match(html, /Bộ nhận diện|Brand identity/);
+  assert.match(html, /\/brand\/mark\.svg/);
+  assert.match(html, /\/brand\/mark-app\.svg/);
+  assert.match(mark, /FF5A14/);
+  assert.match(mark, /FFC56B/);
+  assert.match(favicon, /FF5A14/);
+  assert.doesNotMatch(html, /cloudflare\.com\/.*logo/i);
+});
+
 test("theme and responsive foundations exist", () => {
   const themeBoot = readFileSync(new URL("../public/theme.js", import.meta.url), "utf8");
   assert.match(html, /theme\.js/);
