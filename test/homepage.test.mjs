@@ -58,12 +58,17 @@ test("theme and responsive foundations exist", () => {
   assert.match(html, /data-theme-toggle/);
   assert.match(html, /Showcase cá nhân trên Cloudflare Developer Platform/);
   assert.match(html, /Không máy chủ tự vận hành|no servers to manage/i);
-  assert.match(html, /uptime gần 100%|near-100% uptime/i);
+  assert.match(html, /uptime gần 100%|near-100% uptime|always-on availability/i);
   assert.match(html, /showcase demo về giá trị|demo showcase of how the Cloudflare Developer Platform/i);
   assert.doesNotMatch(html, /Orange Cloud là studio cá nhân của Cường Lê Sỹ/);
+  assert.doesNotMatch(html, /liệt kê 14|lists 14|14 sản phẩm|14 demo products|14 dự án demo|14 selected repositories/i);
+  assert.match(html, /class="hero-aside"/);
+  assert.match(css, /\.hero-aside\s*\{[^}]*margin:\s*[^;]*auto/s);
   assert.match(css, /\[data-theme="light"\]/);
   assert.match(css, /clamp\(/);
   assert.match(css, /safe-area-inset/);
+  assert.match(css, /font-weight:\s*500/);
+  assert.match(css, /\.clauses article/);
   assert.match(themeBoot, /oc-theme/);
   assert.match(themeBoot, /prefers-color-scheme/);
 });
