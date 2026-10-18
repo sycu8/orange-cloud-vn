@@ -319,6 +319,14 @@ input {
   overflow: hidden;
 }
 
+.hero > .wrap-wide {
+  text-align: center;
+}
+
+.hero .wordmark {
+  margin-inline: auto;
+}
+
 .hero::before {
   content: "";
   position: absolute;
@@ -335,11 +343,19 @@ input {
   position: relative;
   max-width: 48ch;
   margin-top: clamp(1.1rem, 2.5vw, 2rem);
+  margin-inline: auto;
+  text-align: center;
 }
 
 .hero-copy .manifesto,
 .hero-copy .lede {
   max-width: none;
+}
+
+.hero-copy .actions,
+.hero-copy .notice {
+  justify-content: center;
+  margin-inline: auto;
 }
 
 .eyebrow,
@@ -532,7 +548,9 @@ input {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  margin: 2rem 0 0;
+  width: min(1240px, calc(100% - 2 * var(--pad)));
+  margin-top: 2rem;
+  margin-inline: auto;
   background: var(--line);
   border: 1px solid var(--line);
 }
@@ -540,6 +558,7 @@ input {
 .stats div {
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   padding: 1rem 1.05rem 1.15rem;
+  text-align: center;
 }
 
 .stats dt {

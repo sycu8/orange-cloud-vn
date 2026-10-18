@@ -82,6 +82,7 @@ test("theme and responsive foundations exist", () => {
   assert.match(css, /safe-area-inset/);
   assert.match(css, /font-weight:\s*500/);
   assert.match(css, /\.clauses article/);
+  assert.match(css, /\.stats\s*\{[^}]*margin-inline:\s*auto/s);
   assert.match(themeBoot, /oc-theme/);
   assert.match(themeBoot, /prefers-color-scheme/);
 });
