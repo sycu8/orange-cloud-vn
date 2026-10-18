@@ -329,13 +329,15 @@ input {
   pointer-events: none;
 }
 
-.hero-grid {
+.hero-copy {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
-  gap: clamp(1.2rem, 3.5vw, 3.2rem);
-  align-items: start;
+  max-width: 48ch;
   margin-top: clamp(1.1rem, 2.5vw, 2rem);
+}
+
+.hero-copy .manifesto,
+.hero-copy .lede {
+  max-width: none;
 }
 
 .eyebrow,
@@ -450,6 +452,9 @@ input {
 }
 
 .hero-aside {
+  position: relative;
+  width: min(40rem, 100%);
+  margin: clamp(1.6rem, 4vw, 2.6rem) auto 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
@@ -516,7 +521,7 @@ input {
 .stats {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   margin: 2rem 0 0;
   background: var(--line);
@@ -1061,7 +1066,6 @@ h3 {
 }
 
 @media (max-width: 980px) {
-  .hero-grid,
   .studio-grid,
   .dossier-grid,
   .foot-grid {
@@ -1069,7 +1073,7 @@ h3 {
   }
 
   .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .search {
