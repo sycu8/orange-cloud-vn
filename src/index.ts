@@ -1,3 +1,4 @@
+import { handleEdgeCheck, handleEdgeContact } from "./edge-check.ts";
 import {
   apexHostRedirect,
   canonicalRedirect,
@@ -226,6 +227,23 @@ export default {
         );
 
         return statusResponse(env, ctx, method, secure);
+      }
+
+      if (url.pathname === "/api/edge-check" && (method === "GET" || method === "HEAD")) {
+        const response = await handleEdgeCheck(request, env, ctx);
+        if (method === "HEAD") await response.body?.cancel();
+        return withSecurity(
+          new Response(method === "HEAD" ? null : response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+          }),
+          secure,
+        );
+      }
+
+      if (url.pathname === "/api/edge-check/contact" && method === "POST") {
+        return withSecurity(await handleEdgeContact(request, env), secure);
       }
 
       if (method !== "GET" && method !== "HEAD") {
