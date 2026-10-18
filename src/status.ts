@@ -1,4 +1,5 @@
 import {
+  HISTORY_DAYS,
   HISTORY_LIMIT,
   HISTORY_PREFIX,
   MONITORS,
@@ -16,6 +17,13 @@ export type HistorySample = {
   ms: number;
 };
 
+export type DayBar = {
+  date: string;
+  uptime: number | null;
+  up: number;
+  total: number;
+};
+
 export type MonitorStatus = {
   id: string;
   name: string;
@@ -30,6 +38,7 @@ export type MonitorStatus = {
   uptime7d: number | null;
   samples24h: number;
   samples7d: number;
+  history: DayBar[];
 };
 
 export type StatusSnapshot = {
@@ -71,6 +80,65 @@ function windowStats(
     if (sample.ok) up += 1;
   }
   return { uptime: roundPct(up, total), count: total };
+}
+
+export function dailyHistory(
+  samples: readonly HistorySample[],
+  days: number,
+  now: number,
+): DayBar[] {
+  const nowDate = new Date(now);
+  const startOfToday = Date.UTC(
+    nowDate.getUTCFullYear(),
+    nowDate.getUTCMonth(),
+    nowDate.getUTCDate(),
+  );
+  const bars: DayBar[] = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const dayStart = startOfToday - i * 86_400_000;
+    const dayEnd = dayStart + 86_400_000;
+    let up = 0;
+    let total = 0;
+    for (const sample of samples) {
+      if (sample.t < dayStart || sample.t >= dayEnd) continue;
+      total += 1;
+      if (sample.ok) up += 1;
+    }
+    bars.push({
+      date: new Date(dayStart).toISOString().slice(0, 10),
+      uptime: roundPct(up, total),
+      up,
+      total,
+    });
+  }
+  return bars;
+}
+
+function toMonitorStatus(
+  monitor: Monitor,
+  probe: { ok: boolean; ms: number },
+  history: HistorySample[],
+  checkedAt: string,
+  now: number,
+): MonitorStatus {
+  const day = windowStats(history, 24 * 60 * 60 * 1000, now);
+  const week = windowStats(history, 7 * 24 * 60 * 60 * 1000, now);
+  return {
+    id: monitor.id,
+    name: monitor.name,
+    nameEn: monitor.nameEn,
+    host: hostOf(monitor.url),
+    url: monitor.url,
+    projectId: monitor.projectId,
+    status: probe.ok ? "up" : "down",
+    latencyMs: probe.ms,
+    checkedAt,
+    uptime24h: day.uptime,
+    uptime7d: week.uptime,
+    samples24h: day.count,
+    samples7d: week.count,
+    history: dailyHistory(history, HISTORY_DAYS, now),
+  };
 }
 
 export function overallFromCounts(up: number, down: number): OverallState {
@@ -172,26 +240,7 @@ export async function runStatusChecks(
         ms: probe.ms,
       });
       await kv.put(`${HISTORY_PREFIX}${monitor.id}`, JSON.stringify(history));
-
-      const day = windowStats(history, 24 * 60 * 60 * 1000, now);
-      const week = windowStats(history, 7 * 24 * 60 * 60 * 1000, now);
-
-      const status: MonitorStatus = {
-        id: monitor.id,
-        name: monitor.name,
-        nameEn: monitor.nameEn,
-        host: hostOf(monitor.url),
-        url: monitor.url,
-        projectId: monitor.projectId,
-        status: probe.ok ? "up" : "down",
-        latencyMs: probe.ms,
-        checkedAt,
-        uptime24h: day.uptime,
-        uptime7d: week.uptime,
-        samples24h: day.count,
-        samples7d: week.count,
-      };
-      return status;
+      return toMonitorStatus(monitor, probe, history, checkedAt, now);
     }),
   );
 
@@ -233,23 +282,15 @@ export async function buildSnapshotFromHistory(
     const history = await readHistory(kv, monitor.id);
     if (history.length === 0) continue;
     const latest = history[history.length - 1]!;
-    const day = windowStats(history, 24 * 60 * 60 * 1000, now);
-    const week = windowStats(history, 7 * 24 * 60 * 60 * 1000, now);
-    monitors.push({
-      id: monitor.id,
-      name: monitor.name,
-      nameEn: monitor.nameEn,
-      host: hostOf(monitor.url),
-      url: monitor.url,
-      projectId: monitor.projectId,
-      status: latest.ok ? "up" : "down",
-      latencyMs: latest.ms,
-      checkedAt: new Date(latest.t).toISOString(),
-      uptime24h: day.uptime,
-      uptime7d: week.uptime,
-      samples24h: day.count,
-      samples7d: week.count,
-    });
+    monitors.push(
+      toMonitorStatus(
+        monitor,
+        { ok: latest.ok, ms: latest.ms },
+        history,
+        new Date(latest.t).toISOString(),
+        now,
+      ),
+    );
   }
 
   if (monitors.length === 0) return null;

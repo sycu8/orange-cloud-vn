@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-en="Status · Orange Cloud">Trạng thái · Orange Cloud</title>
+    <meta
+      name="description"
+      content="Trạng thái và uptime các domain Orange Cloud. Kiểm tra mỗi 5 phút từ Cloudflare Workers. Dự án cá nhân, không phải ấn phẩm của Cloudflare, Inc."
+      data-en="Status and uptime for Orange Cloud domains. Probed every 5 minutes from Cloudflare Workers. A personal project, not a publication of Cloudflare, Inc."
+    />
+    <meta name="theme-color" content="#100e0c" id="theme-color" />
+    <meta property="og:title" content="Trạng thái · Orange Cloud" data-en="Status · Orange Cloud" />
+    <meta
+      property="og:description"
+      content="Trạng thái và uptime các domain Orange Cloud."
+      data-en="Status and uptime for Orange Cloud domains."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://orangecloud.vn/status/" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:image" content="https://orangecloud.vn/og.png?v=1" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Orange Cloud — Showcase cá nhân trên Cloudflare Developer Platform. Không máy chủ tự vận hành." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://orangecloud.vn/og.png?v=1" />
+    <meta name="twitter:image:alt" content="Orange Cloud — Showcase cá nhân trên Cloudflare Developer Platform. Không máy chủ tự vận hành." />
+    <link rel="canonical" href="https://orangecloud.vn/status/" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://orangecloud.vn/#person",
+            "name": "Cường Lê Sỹ",
+            "alternateName": ["Cuong Le Sy", "Cuong Le", "Sycule"],
+            "url": "https://orangecloud.vn/about/",
+            "sameAs": ["https://github.com/sycu8"],
+            "description": "Maintains Orange Cloud in a personal capacity. Orange Cloud is not a publication of Cloudflare, Inc. and is not affiliated with Cloudflare, Inc."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://orangecloud.vn/#website",
+            "name": "Orange Cloud",
+            "url": "https://orangecloud.vn/",
+            "author": { "@id": "https://orangecloud.vn/#person" },
+            "publisher": { "@id": "https://orangecloud.vn/#person" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://orangecloud.vn/status/#page",
+            "url": "https://orangecloud.vn/status/",
+            "name": "Orange Cloud Status",
+            "inLanguage": "vi",
+            "isPartOf": { "@id": "https://orangecloud.vn/#website" },
+            "description": "Public status and uptime for Orange Cloud domains. Personal project. Not a publication of Cloudflare, Inc."
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="status-page-body">
+    <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
+
+    <header class="spage-top">
+      <a class="brand" href="/">
+        <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
+        <span>Orange Cloud</span>
+      </a>
+      <div class="spage-top-actions">
+        <a class="spage-btn spage-btn-solid" href="/api/status" data-en="JSON API">JSON API</a>
+        <button
+          class="theme-toggle"
+          type="button"
+          data-theme-toggle
+          aria-label="Chuyển chế độ sáng hoặc tối"
+          data-en-aria="Switch light or dark mode"
+        >
+          <span class="icon-moon" aria-hidden="true">☾</span>
+          <span class="icon-sun" aria-hidden="true">☀</span>
+        </button>
+        <div class="lang" role="group" aria-label="Ngôn ngữ" data-en-aria="Language">
+          <button type="button" data-set-lang="vi" aria-pressed="true">VI</button>
+          <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="content" class="spage">
+      <section
+        class="spage-banner"
+        id="spage-banner"
+        data-state="loading"
+        aria-live="polite"
+      >
+        <span class="spage-banner-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <circle cx="12" cy="12" r="12" fill="currentColor" opacity="0.2" />
+            <path
+              class="spage-check"
+              d="M7.5 12.5 10.5 15.5 16.5 9"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              class="spage-warn"
+              d="M12 7.5v6M12 16.5h.01"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              hidden
+            />
+          </svg>
+        </span>
+        <div class="spage-banner-copy">
+          <h1 data-spage-headline data-en="Checking systems…">Đang kiểm tra hệ thống…</h1>
+          <p data-spage-sub data-en="Loading the latest probes.">Đang tải kết quả probe mới nhất.</p>
+        </div>
+      </section>
+
+      <section class="spage-card" aria-labelledby="system-status-label">
+        <div class="spage-card-head">
+          <h2 id="system-status-label" data-en="System status">Trạng thái hệ thống</h2>
+          <p class="spage-meta">
+            <span data-spage-checked>—</span>
+            <span class="status-sep" aria-hidden="true">·</span>
+            <span data-spage-uptime>—</span>
+          </p>
+        </div>
+        <ul class="spage-list" id="spage-list" data-spage-list>
+          <li class="spage-list-empty" data-en="Loading domains…">Đang tải tên miền…</li>
+        </ul>
+      </section>
+
+      <div class="spage-actions">
+        <a class="spage-btn" href="#history">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3.5" y="5" width="17" height="15" rx="2" />
+            <path d="M8 3.5v3M16 3.5v3M3.5 10h17" />
+          </svg>
+          <span data-en="View history">Xem lịch sử</span>
+        </a>
+      </div>
+
+      <section class="spage-card" id="history" aria-labelledby="history-label" hidden data-spage-history>
+        <div class="spage-card-head">
+          <h2 id="history-label" data-en="Uptime history (7 days)">Lịch sử uptime (7 ngày)</h2>
+          <p class="spage-meta" data-en="One bar per UTC day. Gray means no samples yet.">
+            Mỗi cột là một ngày UTC. Xám nghĩa là chưa có mẫu.
+          </p>
+        </div>
+        <ul class="spage-history" data-spage-history-list></ul>
+      </section>
+
+      <p class="spage-note" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc. Probes run every 5 minutes from Cloudflare Workers.">
+        Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc. Probe chạy mỗi 5 phút từ Cloudflare Workers.
+      </p>
+    </main>
+
+    <footer class="spage-foot">
+      <a href="/">Orange Cloud</a>
+      <a href="/about/" data-en="About">Giới thiệu</a>
+      <a href="/api/status">/api/status</a>
+    </footer>
+
+    <script src="/app.js" defer></script>
+    <script src="/status/status-page.js" defer></script>
+  </body>
+</html>

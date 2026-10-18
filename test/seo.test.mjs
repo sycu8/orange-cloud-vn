@@ -11,6 +11,7 @@ import {
 
 const home = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 const about = readFileSync(new URL("../public/about/index.html", import.meta.url), "utf8");
+const statusPage = readFileSync(new URL("../public/status/index.html", import.meta.url), "utf8");
 const missing = readFileSync(new URL("../public/404.html", import.meta.url), "utf8");
 const robots = readFileSync(new URL("../public/robots.txt", import.meta.url), "utf8");
 const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8");
@@ -63,6 +64,7 @@ function assertLeaves(html, label) {
 test("canonical tags point at the final 200 URLs", () => {
   assert.match(home, /<link rel="canonical" href="https:\/\/orangecloud\.vn\/"\s*\/>/);
   assert.match(about, /<link rel="canonical" href="https:\/\/orangecloud\.vn\/about\/"\s*\/>/);
+  assert.match(statusPage, /<link rel="canonical" href="https:\/\/orangecloud\.vn\/status\/"\s*\/>/);
   assert.doesNotMatch(missing, /rel="canonical"/);
   assert.match(missing, /name="robots" content="noindex"/);
 });
@@ -89,8 +91,8 @@ test("person and website JSON-LD use stable ids and omit employment", () => {
   assert.equal(profile.isPartOf["@id"], "https://orangecloud.vn/#website");
 });
 
-test("visible disclaimer is on the homepage, about page, and 404", () => {
-  for (const html of [home, about, missing]) {
+test("visible disclaimer is on the homepage, about page, status page, and 404", () => {
+  for (const html of [home, about, statusPage, missing]) {
     const visible = visibleHtml(html);
     assert.match(visible, /Dự án cá nhân/);
     assert.match(visible, /không phải ấn phẩm của Cloudflare, Inc\./i);
@@ -111,8 +113,10 @@ test("about page uses on-site facts and is listed in the sitemap", () => {
   assert.doesNotMatch(about, /hello@orangecloud\.vn/);
   assert.doesNotMatch(about, /linkedin\.com/);
   assert.match(sitemap, /<loc>https:\/\/orangecloud\.vn\/about\/<\/loc>/);
+  assert.match(sitemap, /<loc>https:\/\/orangecloud\.vn\/status\/<\/loc>/);
   assert.match(sitemap, /<loc>https:\/\/orangecloud\.vn\/<\/loc>/);
   assertLeaves(about, "about");
+  assertLeaves(statusPage, "status");
 });
 
 test("open graph banner is a same-origin png and the tags do not name a twitter site", () => {
@@ -144,6 +148,7 @@ test("open graph banner is a same-origin png and the tags do not name a twitter 
 test("llms.txt, robots.txt, and favicon follow the apex audit", () => {
   assert.match(llms, /# Orange Cloud/);
   assert.match(llms, /https:\/\/orangecloud\.vn\/about\//);
+  assert.match(llms, /https:\/\/orangecloud\.vn\/status\//);
   assert.match(llms, /https:\/\/github\.com\/sycu8\)/);
   assert.match(llms, /Not a publication of Cloudflare, Inc\./);
   assert.doesNotMatch(llms, /Territory Account Executive|worksFor/);
@@ -185,12 +190,15 @@ test("legacy and canonical redirects match the apex map", () => {
   assert.equal(canonicalRedirect("/index.html", "?x=1"), "https://orangecloud.vn/?x=1");
   assert.equal(canonicalRedirect("/about", ""), "https://orangecloud.vn/about/");
   assert.equal(canonicalRedirect("/about/", ""), undefined);
+  assert.equal(canonicalRedirect("/status", ""), "https://orangecloud.vn/status/");
+  assert.equal(canonicalRedirect("/status/", ""), undefined);
   assert.equal(
     apexHostRedirect(new URL("https://www.orangecloud.vn/about/?x=1")),
     "https://orangecloud.vn/about/?x=1",
   );
   assert.equal(shouldServeNotFound("/nope", 200, "text/html"), true);
   assert.equal(shouldServeNotFound("/about/", 200, "text/html; charset=utf-8"), false);
+  assert.equal(shouldServeNotFound("/status/", 200, "text/html; charset=utf-8"), false);
   assert.equal(shouldServeNotFound("/", 200, "text/html"), false);
   assert.equal(shouldServeNotFound("/404.html", 200, "text/html"), true);
   assert.equal(shouldServeNotFound("/missing", 404, "text/plain"), true);
@@ -201,6 +209,7 @@ function assetEnv(softHtml) {
     ["/", "<!doctype html><title>home</title>"],
     ["/index.html", "<!doctype html><title>home</title>"],
     ["/about/index.html", "<!doctype html><title>about</title>"],
+    ["/status/index.html", "<!doctype html><title>status</title>"],
     ["/404.html", "<!doctype html><title>missing</title>"],
     ["/llms.txt", "# Orange Cloud\n"],
     ["/favicon.ico", "ico"],
@@ -261,6 +270,14 @@ test("unknown paths return a real 404 and canonical aliases redirect", async () 
   const aboutRedirect = await worker.fetch(new Request("https://orangecloud.vn/about"), env);
   assert.equal(aboutRedirect.status, 301);
   assert.equal(aboutRedirect.headers.get("location"), "https://orangecloud.vn/about/");
+
+  const statusRes = await worker.fetch(new Request("https://orangecloud.vn/status/"), env);
+  assert.equal(statusRes.status, 200);
+  assert.match(await statusRes.text(), /status/);
+
+  const statusRedirect = await worker.fetch(new Request("https://orangecloud.vn/status"), env);
+  assert.equal(statusRedirect.status, 301);
+  assert.equal(statusRedirect.headers.get("location"), "https://orangecloud.vn/status/");
 
   const www = await worker.fetch(new Request("https://www.orangecloud.vn/about/?x=1"), env);
   assert.equal(www.status, 301);

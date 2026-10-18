@@ -127,7 +127,38 @@ test("wrangler binds status KV and a five-minute cron", () => {
 test("homepage ships a status bar and client loader", () => {
   assert.match(html, /id="status-bar"/);
   assert.match(html, /data-status-list/);
+  assert.match(html, /href="\/status\/"/);
   assert.match(app, /\/api\/status/);
   assert.match(app, /renderStatus/);
   assert.doesNotMatch(app, /innerHTML|document\.write|eval\(/);
+});
+
+test("daily history returns one bar per UTC day", () => {
+  const now = Date.parse("2026-10-18T12:00:00.000Z");
+  const samples = [
+    { t: Date.parse("2026-10-16T10:00:00.000Z"), ok: true, ms: 100 },
+    { t: Date.parse("2026-10-17T10:00:00.000Z"), ok: false, ms: 100 },
+    { t: Date.parse("2026-10-17T11:00:00.000Z"), ok: true, ms: 100 },
+    { t: Date.parse("2026-10-18T09:00:00.000Z"), ok: true, ms: 100 },
+  ];
+  const bars = status.dailyHistory(samples, 3, now);
+  assert.equal(bars.length, 3);
+  assert.equal(bars[0].date, "2026-10-16");
+  assert.equal(bars[0].uptime, 100);
+  assert.equal(bars[1].date, "2026-10-17");
+  assert.equal(bars[1].uptime, 50);
+  assert.equal(bars[2].date, "2026-10-18");
+  assert.equal(bars[2].uptime, 100);
+});
+
+test("status page mirrors OpenAI-style sections", () => {
+  const page = readFileSync(new URL("../public/status/index.html", import.meta.url), "utf8");
+  const script = readFileSync(new URL("../public/status/status-page.js", import.meta.url), "utf8");
+  assert.match(page, /spage-banner/);
+  assert.match(page, /System status|Trạng thái hệ thống/);
+  assert.match(page, /View history|Xem lịch sử/);
+  assert.match(page, /canonical" href="https:\/\/orangecloud\.vn\/status\/"/);
+  assert.match(script, /\/api\/status/);
+  assert.match(script, /renderHistory|spage-history/);
+  assert.doesNotMatch(script, /document\.write|eval\(/);
 });

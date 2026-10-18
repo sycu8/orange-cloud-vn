@@ -85,5 +85,8 @@ export const HISTORY_PREFIX = "status:history:";
 /** Keep ~7 days at a 5-minute cron interval. */
 export const HISTORY_LIMIT = 2016;
 
+/** Days of daily uptime bars on the status page. */
+export const HISTORY_DAYS = 7;
+
 /** Probe timeout for each host. */
 export const PROBE_TIMEOUT_MS = 8_000;

@@ -4,7 +4,16 @@ import {
   legacyRedirect,
   shouldServeNotFound,
 } from "./routes.ts";
-import { readStatusSnapshot, runStatusChecks } from "./status.ts";
+import {
+  buildSnapshotFromHistory,
+  readStatusSnapshot,
+  runStatusChecks,
+  type StatusSnapshot,
+} from "./status.ts";
+
+function hasHistory(snapshot: StatusSnapshot): boolean {
+  return snapshot.monitors.every((monitor) => Array.isArray(monitor.history));
+}
 
 const BASE_CSP = [
   "default-src 'self'",
@@ -117,6 +126,10 @@ async function statusResponse(
     } else {
       snapshot = await runStatusChecks(env.STATUS_KV);
     }
+  } else if (!hasHistory(snapshot)) {
+    snapshot =
+      (await buildSnapshotFromHistory(env.STATUS_KV)) ??
+      (await runStatusChecks(env.STATUS_KV));
   }
 
   if (method === "HEAD") {

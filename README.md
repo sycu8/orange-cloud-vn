@@ -32,7 +32,7 @@ Worker phục vụ static assets, thêm security header, và trả:
 - `GET /api/health` — health check đơn giản
 - `GET /api/status` — trạng thái + uptime % của các domain dự án (cron 5 phút, lưu KV)
 
-Trang chủ có status bar sticky: tổng trạng thái, uptime 24 giờ, và danh sách từng domain.
+Trang chủ có status bar sticky. Trang đầy đủ: https://orangecloud.vn/status/ (banner tổng quan, system status, lịch sử 7 ngày).
 
 Đang chạy: https://orange-cloud-vn.sycu-lee.workers.dev
 
