@@ -75,6 +75,8 @@ test("theme and responsive foundations exist", () => {
   assert.match(html, /showcase demo về giá trị|demo showcase of how the Cloudflare Developer Platform/i);
   assert.doesNotMatch(html, /Orange Cloud là studio cá nhân của Cường Lê Sỹ/);
   assert.doesNotMatch(html, /liệt kê 14|lists 14|14 sản phẩm|14 demo products|14 dự án demo|14 selected repositories/i);
+  assert.match(html, /href="\/tools\/edge-coverage\/"/);
+  assert.match(html, /id="edge"/);
   assert.match(html, /class="hero-aside"/);
   assert.match(css, /\.hero-aside\s*\{[^}]*margin:\s*[^;]*auto/s);
   assert.match(css, /\[data-theme="light"\]/);
