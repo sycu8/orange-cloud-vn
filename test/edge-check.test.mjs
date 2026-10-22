@@ -13,12 +13,25 @@ import {
   handleEdgeCheck,
   handleEdgeContact,
   resetLocalRateLimitForTests,
+  classifySetup,
+  extraHostsForDomain,
   hostsForDomain,
   inspectDomain,
+  MAX_DNS_HOSTS,
+  MAX_HTTP_PROBES,
   normalizeDomain,
+  parseCertificateNames,
   providerFromCname,
   providerFromHeaders,
 } from "../src/edge-check.ts";
+import {
+  cdnNameFromAsn,
+  cymruQueryName,
+  networkFromCymru,
+  networkFromIpwho,
+  parseCymruTxt,
+  providerNameFromAsn,
+} from "../src/network-provider.ts";
 import { canonicalRedirect, shouldServeNotFound } from "../src/routes.ts";
 
 const page = readFileSync(new URL("../public/tools/edge-coverage/index.html", import.meta.url), "utf8");
@@ -133,6 +146,15 @@ test("cname and header signals classify the expected provider", () => {
   assert.equal(providerFromCname("bar.cdn.cdntip.com"), "tencent");
   assert.equal(providerFromCname("origin.example.net"), null);
   assert.equal(providerFromCname("notcloudflare.net"), null);
+  assert.equal(providerFromCname("assets.akamaihd.net"), "akamai");
+  assert.equal(providerFromCname("elb.amazonaws.com"), "aws");
+  assert.equal(providerFromCname("app.awsglobalaccelerator.com"), "aws");
+  assert.equal(providerFromCname("app.azurewebsites.net"), "azurehost");
+  assert.equal(providerFromCname("edge.trafficmanager.net"), "azurehost");
+  assert.equal(providerFromCname("gateway.zscaler.net"), "zscaler");
+  assert.equal(providerFromCname("example.incapdns.net"), "imperva");
+  assert.equal(providerFromCname("example.sucuri.net"), "sucuri");
+  assert.equal(providerFromCname("notzscaler.com"), null);
 
   assert.equal(providerFromHeaders(headers({ "cf-ray": "abc-SIN", server: "cloudflare" })), "cloudflare");
   assert.equal(
@@ -148,6 +170,9 @@ test("cname and header signals classify the expected provider", () => {
   assert.equal(providerFromHeaders(headers({ "x-vercel-id": "id" })), "vercel");
   assert.equal(providerFromHeaders(headers({ "x-nf-request-id": "id" })), "netlify");
   assert.equal(providerFromHeaders(headers({ server: "BunnyCDN-HI1-927" })), "bunny");
+  assert.equal(providerFromHeaders(headers({ "x-sucuri-id": "1" })), "sucuri");
+  assert.equal(providerFromHeaders(headers({ "x-iinfo": "1" })), "imperva");
+  assert.equal(providerFromHeaders(headers({ server: "Zscaler" })), "zscaler");
 });
 
 test("classification prefers headers, then cname, then cloudflare addresses", () => {
@@ -219,6 +244,17 @@ test("classification prefers headers, then cname, then cloudflare addresses", ()
   assert.equal(stampedOrigin.originExposed, true);
   assert.ok(stampedOrigin.evidence.includes("a:20.29.134.23"));
   assert.equal(stampedOrigin.evidence.some((item) => item.includes("cf-ray") || item.includes("server=cloudflare")), false);
+
+  const hosted = classifyHost({
+    role: "app",
+    host: "app.example.com",
+    records: { cname: ["app.example.com.elb.amazonaws.com"], a: [], aaaa: [] },
+    headers: null,
+    notes: [],
+  });
+  assert.equal(hosted.status, "direct");
+  assert.equal(hosted.provider, null);
+  assert.equal(hosted.hosting, "Amazon Web Services");
 });
 
 test("recommendation rules stay informational", () => {
@@ -331,6 +367,196 @@ test("inspectDomain skips header probes for mail and private addresses", async (
   const mail = report.hosts.find((host) => host.role === "mail");
   assert.ok(mail.evidence.includes("probe_skipped:mail"));
   assert.ok(report.recommendations.some((item) => item.id === "mixed-cdn"));
+  assert.equal(report.discovery.source, "common");
+  assert.equal(report.discovery.scanned, 12);
+  assert.equal(report.setup.mode, "partial");
+});
+
+test("certificate names stay on the domain and the scan cap prefers shorter hosts", () => {
+  const parsed = parseCertificateNames("example.com", [
+    { name_value: "*.example.com\nwww.example.com\nlogin.other.com" },
+    { name_value: "*.docs.example.com, status.example.com" },
+    { common_name: "API.Example.com" },
+    { name_value: "not a host" },
+  ]);
+  assert.deepEqual(parsed.names, [
+    "example.com",
+    "api.example.com",
+    "www.example.com",
+    "docs.example.com",
+    "status.example.com",
+  ]);
+  assert.equal(parsed.truncated, false);
+
+  const many = Array.from({ length: 50 }, (_, index) => `${"n".repeat(index + 1)}.example.com`);
+  many.push("a.example.com");
+  const extras = extraHostsForDomain("example.com", many);
+  assert.equal(extras.truncated, true);
+  assert.equal(extras.hosts.length, MAX_DNS_HOSTS - 12);
+  assert.equal(extras.hosts[0].host, "a.example.com");
+  assert.equal(extras.hosts[0].role, "subdomain");
+  assert.equal(extras.hosts.some((item) => item.host === "www.example.com"), false);
+});
+
+test("cloudflare setup follows nameservers, not only proxied addresses", () => {
+  assert.equal(classifySetup(["ada.ns.cloudflare.com", "bob.ns.cloudflare.com."], true, true), "full");
+  assert.equal(classifySetup(["ada.ns.cloudflare.com", "bob.ns.cloudflare.com"], false, true), "full");
+  assert.equal(classifySetup(["ns1.example.net", "ns2.example.net"], true, true), "partial");
+  assert.equal(classifySetup(["ada.ns.cloudflare.com", "ns1.example.net"], false, true), "partial");
+  assert.equal(classifySetup(["ns1.example.net"], false, true), "unknown");
+  assert.equal(classifySetup(["ns1.example.net"], false, true, "other"), "none");
+  assert.equal(classifySetup(["ns1.example.com"], false, true, "cloudflare"), "full");
+  assert.equal(classifySetup(["ns1.example.com", "ada.ns.cloudflare.com"], false, true, "mixed"), "partial");
+  assert.equal(classifySetup([], true, true), "partial");
+  assert.equal(classifySetup([], false, true), "unknown");
+  assert.equal(classifySetup(["ada.ns.cloudflare.com"], true, false), "unknown");
+});
+
+test("asn names keep cloud providers distinct from cdn networks", () => {
+  assert.equal(providerNameFromAsn(8075), "Microsoft Azure");
+  assert.equal(providerNameFromAsn(16509), "Amazon Web Services");
+  assert.equal(providerNameFromAsn(15169), "Google Cloud");
+  assert.equal(providerNameFromAsn(20940), "Akamai");
+  assert.equal(providerNameFromAsn(36459), "GitHub");
+  assert.equal(providerNameFromAsn(22616), "Zscaler");
+  assert.equal(cdnNameFromAsn(16509), null);
+  assert.equal(cdnNameFromAsn(8075), null);
+  assert.equal(cdnNameFromAsn(20940), "Akamai");
+  assert.equal(cdnNameFromAsn(54113), "Fastly");
+  assert.equal(cymruQueryName("20.29.134.23"), "23.134.29.20.origin.asn.cymru.com");
+  assert.equal(cymruQueryName("104.16.1.1"), null);
+  assert.equal(parseCymruTxt('"8075 | 20.0.0.0/11 | US | arin | 2017-10-18"')?.asn, 8075);
+  const who = networkFromIpwho("20.29.134.23", {
+    success: true,
+    country: "United States",
+    city: "Quincy",
+    connection: { asn: 8075, org: "Microsoft Corporation", isp: "Microsoft Corporation" },
+  });
+  assert.equal(who.provider, "Microsoft Azure");
+  assert.equal(who.cdn, null);
+  assert.equal(who.city, "Quincy");
+  assert.equal(networkFromCymru("23.15.1.1", "20940 | 23.0.0.0/8 | US | arin | 1994-01-01").cdn, "Akamai");
+  assert.equal(networkFromIpwho("1.1.1.1", { success: false }), null);
+});
+
+test("scans discovered names, separates cdn from network owner, and caps probes", async () => {
+  const probed = [];
+  const networks = [];
+  const extras = Array.from({ length: 20 }, (_, index) => `n${String(index).padStart(2, "0")}.github.com`);
+  const report = await inspectDomain("github.com", {
+    async lookup(name, type) {
+      if (type === "NS") return { ok: true, values: ["ns-1.example.net", "ns-2.example.net"] };
+      if ((name === "ns-1.example.net" || name === "ns-2.example.net") && (type === "A" || type === "AAAA")) {
+        return { ok: true, values: type === "A" ? ["93.184.216.34"] : [] };
+      }
+      if (name === "github.com" && type === "A") return { ok: true, values: ["20.29.134.23"] };
+      if (name === "blog.github.com" && type === "CNAME") return { ok: true, values: ["blog.github.com.fastly.net"] };
+      if (name === "docs.github.com" && type === "A") return { ok: true, values: ["23.15.1.1"] };
+      if (extras.includes(name) && type === "A") return { ok: true, values: ["93.184.216.34"] };
+      return { ok: true, values: [] };
+    },
+    async probe(host) {
+      probed.push(host);
+      if (host === "github.com") return headers({ "cf-ray": "abc-PDX", server: "cloudflare" });
+      if (host === "blog.github.com") return headers({ "x-served-by": "cache-sjc" });
+      return headers({});
+    },
+    async discover() {
+      return { names: ["docs.github.com", "blog.github.com", ...extras], source: "crt.sh", truncated: false };
+    },
+    async network(ip) {
+      networks.push(ip);
+      if (ip === "20.29.134.23") {
+        return {
+          ip,
+          asn: 8075,
+          org: "Microsoft Corporation",
+          provider: "Microsoft Azure",
+          cdn: null,
+          country: "United States",
+          city: "Quincy",
+        };
+      }
+      if (ip === "23.15.1.1") {
+        return { ip, asn: 20940, org: "Akamai Technologies", provider: "Akamai", cdn: "Akamai", country: "United States", city: null };
+      }
+      return null;
+    },
+  });
+
+  const apex = report.hosts.find((host) => host.host === "github.com");
+  assert.equal(apex.status, "direct");
+  assert.equal(apex.provider, null);
+  assert.equal(apex.network.provider, "Microsoft Azure");
+  assert.equal(apex.network.asn, 8075);
+  assert.equal(apex.evidence.some((item) => item.includes("cf-ray") || item.includes("server=cloudflare")), false);
+  assert.ok(apex.evidence.includes("geo:Quincy, United States"));
+
+  const blog = report.hosts.find((host) => host.host === "blog.github.com");
+  assert.equal(blog.status, "other_cdn");
+  assert.equal(blog.provider, "Fastly");
+
+  const docs = report.hosts.find((host) => host.host === "docs.github.com");
+  assert.equal(docs.role, "subdomain");
+  assert.equal(docs.status, "other_cdn");
+  assert.equal(docs.provider, "Akamai");
+  assert.equal(docs.originExposed, false);
+
+  assert.equal(report.setup.mode, "none");
+  assert.deepEqual(report.setup.nameservers, ["ns-1.example.net", "ns-2.example.net"]);
+  assert.deepEqual(report.cdn, ["Fastly", "Akamai"]);
+  assert.deepEqual(report.networks, ["Microsoft Azure"]);
+  assert.equal(report.discovery.source, "crt.sh");
+  assert.equal(report.discovery.found, 22);
+  assert.equal(report.discovery.scanned, 33);
+  assert.equal(probed.length, MAX_HTTP_PROBES);
+  assert.ok(probed.includes("github.com"));
+  assert.ok(probed.includes("blog.github.com"));
+  assert.equal(probed.includes("mail.github.com"), false);
+  assert.deepEqual(networks.sort(), ["20.29.134.23", "23.15.1.1", "93.184.216.34"]);
+  assert.ok(report.recommendations.some((item) => item.id === "mixed-cdn"));
+  assert.equal(report.recommendations.some((item) => item.id === "setup-partial"), false);
+});
+
+test("full dns is reported when every nameserver is cloudflare", async () => {
+  const report = await inspectDomain("example.com", {
+    async lookup(name, type) {
+      if (type === "NS") return { ok: true, values: ["ada.ns.cloudflare.com", "bob.ns.cloudflare.com"] };
+      if (name === "example.com" && type === "A") return { ok: true, values: ["104.16.1.1"] };
+      return { ok: true, values: [] };
+    },
+    async probe() {
+      return headers({ "cf-ray": "abc-SIN", server: "cloudflare" });
+    },
+    async discover() {
+      return { names: [], source: "crt.sh", truncated: false };
+    },
+  });
+  assert.equal(report.setup.mode, "full");
+  assert.equal(report.discovery.found, 0);
+  assert.equal(report.discovery.scanned, 12);
+  assert.ok(report.recommendations.some((item) => item.id === "setup-full"));
+  assert.equal(report.cdn[0], "Cloudflare");
+  const apex = report.hosts.find((host) => host.role === "apex");
+  assert.equal(apex.network, null);
+});
+
+test("vanity nameservers on cloudflare addresses count as full dns", async () => {
+  const report = await inspectDomain("example.com", {
+    async lookup(name, type) {
+      if (name === "example.com" && type === "NS") return { ok: true, values: ["ns1.example.com", "ns2.example.com"] };
+      if ((name === "ns1.example.com" || name === "ns2.example.com") && type === "A") {
+        return { ok: true, values: ["162.159.3.232"] };
+      }
+      if (name === "example.com" && type === "A") return { ok: true, values: ["104.16.1.1"] };
+      return { ok: true, values: [] };
+    },
+    async probe() {
+      return null;
+    },
+  });
+  assert.equal(report.setup.mode, "full");
+  assert.deepEqual(report.setup.nameservers, ["ns1.example.com", "ns2.example.com"]);
 });
 
 function request(url, ip, init = {}) {

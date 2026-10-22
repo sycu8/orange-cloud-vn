@@ -17,7 +17,7 @@ const COPY = {
     sending: "Đang gửi…",
     failed: "Không kiểm tra được lúc này. Thử lại sau.",
     rate: "Bạn đã kiểm tra quá nhiều lần, vui lòng thử lại sau một phút.",
-    columns: ["Host", "Bản ghi DNS", "Trạng thái", "Bằng chứng"],
+    columns: ["Host", "Bản ghi DNS", "Trạng thái", "Nhà cung cấp", "Bằng chứng"],
     status: {
       cloudflare: "Cloudflare",
       other_cdn: "CDN khác",
@@ -28,6 +28,24 @@ const COPY = {
       `${summary.cloudflare} Cloudflare · ${summary.other_cdn} CDN khác · ${summary.direct} trực tiếp · ${summary.no_record} không có bản ghi`,
     emptyDns: "Không có",
     newTab: "(mở tab mới)",
+    facts: {
+      setup: "Setup",
+      cdn: "CDN",
+      network: "Nhà cung cấp",
+      scan: "Subdomain",
+    },
+    setup: {
+      full: "Full DNS — nameserver thuộc Cloudflare",
+      partial: "Partial — CNAME setup, không phải full DNS",
+      none: "Không thấy Cloudflare trên nameserver hay host đã quét",
+      unknown: "Chưa đọc được nameserver",
+    },
+    cdnEmpty: "Chưa thấy CDN",
+    scanCrt: (found, scanned) => `Certificate Transparency: ${found} tên, đã kiểm tra ${scanned} host`,
+    scanEmpty: (scanned) => `Certificate Transparency không thấy tên thêm. Đã kiểm tra ${scanned} host phổ biến`,
+    scanCommon: (scanned) => `Không lấy được Certificate Transparency. Đã kiểm tra ${scanned} hostname phổ biến`,
+    truncated: " Danh sách bị cắt để vừa giới hạn truy vấn.",
+    nsLabel: "NS",
   },
   en: {
     loading: "Checking…",
@@ -36,7 +54,7 @@ const COPY = {
     sending: "Sending…",
     failed: "The check failed. Try again in a moment.",
     rate: "Bạn đã kiểm tra quá nhiều lần, vui lòng thử lại sau một phút.",
-    columns: ["Host", "DNS records", "Status", "Evidence"],
+    columns: ["Host", "DNS records", "Status", "Provider", "Evidence"],
     status: {
       cloudflare: "Cloudflare",
       other_cdn: "Other CDN",
@@ -47,6 +65,24 @@ const COPY = {
       `${summary.cloudflare} Cloudflare · ${summary.other_cdn} other CDN · ${summary.direct} direct · ${summary.no_record} no record`,
     emptyDns: "None",
     newTab: "(opens in a new tab)",
+    facts: {
+      setup: "Setup",
+      cdn: "CDN",
+      network: "Provider",
+      scan: "Subdomains",
+    },
+    setup: {
+      full: "Full DNS — nameservers are Cloudflare",
+      partial: "Partial — CNAME setup, not full DNS",
+      none: "No Cloudflare nameserver or proxied host in this scan",
+      unknown: "Nameservers could not be read",
+    },
+    cdnEmpty: "No CDN seen",
+    scanCrt: (found, scanned) => `Certificate Transparency: ${found} names, ${scanned} hosts checked`,
+    scanEmpty: (scanned) => `Certificate Transparency listed no extra names. Checked ${scanned} common hosts`,
+    scanCommon: (scanned) => `Certificate Transparency was unavailable. Checked ${scanned} common hostnames`,
+    truncated: " The list was cut to stay within the query cap.",
+    nsLabel: "NS",
   },
 };
 
@@ -85,6 +121,50 @@ function dnsLines(records, emptyLabel) {
   return lines.length ? lines : [emptyLabel];
 }
 
+function providerLines(host) {
+  const lines = [];
+  if (host.provider) lines.push(host.provider);
+  const net = host.network;
+  if (!net) return lines;
+  const owner = net.provider && net.provider !== host.provider ? net.provider : !host.provider ? net.org : "";
+  const place = [net.city, net.country].filter(Boolean).join(", ");
+  const bits = [owner, net.asn ? `AS${net.asn}` : "", place].filter(Boolean);
+  if (bits.length) lines.push(bits.join(" · "));
+  return lines;
+}
+
+function fact(label, value) {
+  const row = el("div", "ecc-fact");
+  row.append(el("div", "ecc-fact-label", label));
+  row.append(el("div", "ecc-fact-value", value));
+  return row;
+}
+
+function renderFacts(report, text) {
+  const box = el("div", "ecc-facts");
+  const setup = report.setup;
+  if (setup?.mode) {
+    const mode = text.setup[setup.mode] || setup.mode;
+    const ns = setup.nameservers?.length ? `${text.nsLabel} ${setup.nameservers.join(", ")}` : "";
+    box.append(fact(text.facts.setup, ns ? `${mode}\n${ns}` : mode));
+  }
+  if (report.cdn) {
+    box.append(fact(text.facts.cdn, report.cdn.length ? report.cdn.join(", ") : text.cdnEmpty));
+  }
+  if (report.networks?.length) {
+    box.append(fact(text.facts.network, report.networks.join(", ")));
+  }
+  const discovery = report.discovery;
+  if (discovery) {
+    let line = text.scanCommon(discovery.scanned);
+    if (discovery.source === "crt.sh" && discovery.found > 0) line = text.scanCrt(discovery.found, discovery.scanned);
+    else if (discovery.source === "crt.sh") line = text.scanEmpty(discovery.scanned);
+    if (discovery.truncated) line += text.truncated;
+    box.append(fact(text.facts.scan, line));
+  }
+  return box;
+}
+
 function renderReport(report) {
   if (!resultsRoot) return;
   const text = copy();
@@ -92,6 +172,7 @@ function renderReport(report) {
   resultsRoot.hidden = false;
 
   resultsRoot.append(el("p", "ecc-summary", text.summary(report.summary)));
+  if (report.setup || report.discovery) resultsRoot.append(renderFacts(report, text));
 
   const table = document.createElement("table");
   table.className = "ecc-table";
@@ -108,6 +189,7 @@ function renderReport(report) {
       el("td", "ecc-host", host.host),
       el("td", "ecc-dns", dnsLines(host.records, text.emptyDns).join("\n")),
       null,
+      el("td", "ecc-net", providerLines(host).join("\n") || "—"),
       el("td", "ecc-evidence", (host.evidence || []).join(" · ") || "—"),
     ];
     const statusCell = document.createElement("td");

@@ -2170,6 +2170,35 @@ h3 {
   font-size: 0.95rem;
 }
 
+.ecc-facts {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.ecc-fact {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-elev);
+}
+
+.ecc-fact-label {
+  color: var(--faint);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.ecc-fact-value {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 .ecc-table {
   width: 100%;
   border-collapse: collapse;
@@ -2193,6 +2222,7 @@ h3 {
 
 .ecc-host,
 .ecc-dns,
+.ecc-net,
 .ecc-evidence {
   font-family: var(--mono);
   font-size: 0.78rem;
@@ -2299,7 +2329,7 @@ h3 {
 
   .ecc-table td {
     display: grid;
-    grid-template-columns: 7.2rem minmax(0, 1fr);
+    grid-template-columns: 8.4rem minmax(0, 1fr);
     gap: 0.45rem;
     border-bottom: none;
     padding: 0.45rem 0;
@@ -2310,6 +2340,11 @@ h3 {
     color: var(--faint);
     font-family: "Inter", system-ui, sans-serif;
     font-size: 0.75rem;
+  }
+
+  .ecc-fact {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
   }
 }
 
