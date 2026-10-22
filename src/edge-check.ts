@@ -1,5 +1,17 @@
 import { isCloudflareIp, isPublicIp } from "./cloudflare-ips.ts";
 import {
+  comparePropagation,
+  DNS_RESOLVERS,
+  DNS_TYPE_CODE,
+  extractPageResources,
+  PANEL_TYPES,
+  parseDnsAnswers,
+  ptrQueryName,
+  type DnsRow,
+  type PageResource,
+  type PropagationRow,
+} from "./dns-view.ts";
+import {
   lookupNetworkProvider,
   type NetworkInfo,
 } from "./network-provider.ts";
@@ -52,7 +64,7 @@ const LOOKUP_CONCURRENCY = 4;
 const DNS_TIMEOUT_MS = 3000;
 
 export type HostStatus = "cloudflare" | "other_cdn" | "direct" | "no_record";
-export type DnsType = "A" | "AAAA" | "CNAME" | "NS" | "TXT";
+export type DnsType = "A" | "AAAA" | "CNAME" | "NS" | "TXT" | "MX" | "SOA" | "CAA" | "HTTPS" | "DS" | "PTR";
 export type SetupMode = "full" | "partial" | "none" | "unknown";
 
 /** Common names always run. Certificate Transparency names fill the rest, then stop. */
@@ -102,8 +114,33 @@ export type DiscoveryInfo = {
   truncated: boolean;
 };
 
+export type DnsPanel = {
+  rows: DnsRow[];
+  dnssec: "signed" | "unsigned" | "unknown";
+  ptr: { ip: string; names: string[] }[];
+  propagation: PropagationRow[];
+};
+
+export type PageCdnResource = {
+  host: string;
+  kinds: string[];
+  count: number;
+  status: HostStatus;
+  provider: string | null;
+};
+
+export type PageCdn = {
+  url: string;
+  fetched: boolean;
+  status: number | null;
+  resources: PageCdnResource[];
+  cdns: string[];
+  truncated: boolean;
+};
+
 export type EdgeReport = {
   domain: string;
+  path: string;
   hosts: HostResult[];
   summary: Record<HostStatus, number>;
   recommendations: Recommendation[];
@@ -114,6 +151,8 @@ export type EdgeReport = {
   discovery: DiscoveryInfo;
   cdn: string[];
   networks: string[];
+  dns: DnsPanel;
+  page: PageCdn;
 };
 
 export type DiscoverResult = {
@@ -139,7 +178,11 @@ type ProviderId =
   | "tencent"
   | "zscaler"
   | "imperva"
-  | "sucuri";
+  | "sucuri"
+  | "edgio"
+  | "cdn77"
+  | "stackpath"
+  | "keycdn";
 
 const PROVIDER_LABEL: Record<ProviderId, string> = {
   cloudflare: "Cloudflare",
@@ -159,6 +202,10 @@ const PROVIDER_LABEL: Record<ProviderId, string> = {
   zscaler: "Zscaler",
   imperva: "Imperva",
   sucuri: "Sucuri",
+  edgio: "Edgio",
+  cdn77: "CDN77",
+  stackpath: "StackPath",
+  keycdn: "KeyCDN",
 };
 
 const HOSTING_PROVIDERS = new Set<ProviderId>(["aws", "azurehost"]);
@@ -174,6 +221,10 @@ const CNAME_SUFFIXES: { id: ProviderId; suffixes: string[] }[] = [
   { id: "zscaler", suffixes: ["zscaler.net", "zscloud.net", "zscaler.com"] },
   { id: "imperva", suffixes: ["incapdns.net", "impervadns.net"] },
   { id: "sucuri", suffixes: ["sucuri.net"] },
+  { id: "edgio", suffixes: ["edgecastcdn.net", "edgecast.net", "llnwd.net"] },
+  { id: "cdn77", suffixes: ["cdn77.org", "cdn77.net"] },
+  { id: "stackpath", suffixes: ["stackpathdns.com", "stackpathcdn.com", "hwcdn.net"] },
+  { id: "keycdn", suffixes: ["kxcdn.com"] },
   { id: "google", suffixes: ["googleusercontent.com", "ghs.googlehosted.com"] },
   { id: "vercel", suffixes: ["vercel-dns.com"] },
   { id: "netlify", suffixes: ["netlify.app"] },
@@ -189,6 +240,9 @@ export type LookupDeps = {
   probe: (host: string) => Promise<Headers | null>;
   discover?: (domain: string) => Promise<DiscoverResult>;
   network?: (ip: string) => Promise<NetworkInfo | null>;
+  records?: (name: string, type: DnsType) => Promise<{ ok: boolean; rows: DnsRow[] }>;
+  propagate?: (name: string) => Promise<PropagationRow[]>;
+  page?: (domain: string, path: string) => Promise<{ url: string; status: number | null; html: string | null } | null>;
 };
 
 export function normalizeDomain(raw: string): { domain: string } | { error: string } {
@@ -217,6 +271,25 @@ export function normalizeDomain(raw: string): { domain: string } | { error: stri
   if (BLOCKED_SUFFIXES.some((suffix) => host.endsWith(suffix))) return { error: INVALID_DOMAIN_MESSAGE };
   if (!HOST_RE.test(host)) return { error: INVALID_DOMAIN_MESSAGE };
   return { domain: host };
+}
+
+/** Domain plus an optional same-site path, so a page URL can be checked the way CDN Finder accepts one. */
+export function normalizeTarget(raw: string): { domain: string; path: string } | { error: string } {
+  const domainResult = normalizeDomain(raw);
+  if ("error" in domainResult) return domainResult;
+  let candidate = raw.trim();
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(candidate)) candidate = `https://${candidate}`;
+  let path = "/";
+  try {
+    const url = new URL(candidate);
+    path = url.pathname || "/";
+  } catch {
+    path = "/";
+  }
+  if (!path.startsWith("/") || path.includes("\\") || path.includes("\0") || path.length > 180) {
+    return { error: INVALID_DOMAIN_MESSAGE };
+  }
+  return { domain: domainResult.domain, path };
 }
 
 export function hostsForDomain(domain: string): { role: string; host: string }[] {
@@ -270,6 +343,8 @@ function specificProviderFromHeaders(headers: Headers): ProviderId | null {
   const cdnHeader = (headers.get("x-cdn") ?? "").toLowerCase();
   if (cdnHeader.includes("incapsula") || cdnHeader.includes("imperva")) return "imperva";
   if (server.includes("zscaler") || via.includes("zscaler")) return "zscaler";
+  if (headers.has("x-77-pop") || headers.has("x-77-nzt") || server.includes("cdn77")) return "cdn77";
+  if (server.includes("keycdn")) return "keycdn";
   return null;
 }
 
@@ -488,32 +563,87 @@ async function mapPool<T, R>(
   return results;
 }
 
-const DNS_TYPE_CODE: Record<DnsType, number> = { A: 1, AAAA: 28, CNAME: 5, NS: 2, TXT: 16 };
+const CLOUDFLARE_DOH = "https://cloudflare-dns.com/dns-query";
+const MAX_PAGE_HOSTS = 12;
+const MAX_PAGE_PROBES = 8;
+const MAX_PAGE_BYTES = 400_000;
 
-async function defaultLookup(name: string, type: DnsType): Promise<LookupResult> {
-  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
+async function queryDns(endpoint: string, name: string, type: DnsType): Promise<{ ok: boolean; rows: DnsRow[] }> {
+  const code = DNS_TYPE_CODE[type];
+  if (!code) return { ok: false, rows: [] };
+  const url = `${endpoint}?name=${encodeURIComponent(name)}&type=${code}`;
   try {
     const response = await fetch(url, {
-      headers: { accept: "application/dns-json" },
+      headers: { accept: "application/dns-json", "user-agent": "OrangeCloudEdgeCheck/1.0" },
       signal: AbortSignal.timeout(DNS_TIMEOUT_MS),
     });
     if (!response.ok) {
       await response.body?.cancel();
-      return { ok: false, values: [] };
+      return { ok: false, rows: [] };
     }
-    const data = (await response.json()) as {
-      Status?: number;
-      Answer?: { type?: number; data?: string }[];
-    };
-    if (data.Status !== 0 && data.Status !== 3) return { ok: false, values: [] };
-    const values = (data.Answer ?? [])
-      .filter((item) => item.type === DNS_TYPE_CODE[type] && typeof item.data === "string")
-      .map((item) => item.data!.replace(/\.$/, "").toLowerCase())
-      .filter((value) => value.length > 0 && value.length <= 253);
-    return { ok: true, values: [...new Set(values)] };
+    const body = await readCappedBody(response, 65_536);
+    if (body === null) return { ok: false, rows: [] };
+    return parseDnsAnswers(JSON.parse(body) as unknown, type);
   } catch {
-    return { ok: false, values: [] };
+    return { ok: false, rows: [] };
   }
+}
+
+async function defaultLookup(name: string, type: DnsType): Promise<LookupResult> {
+  const result = await queryDns(CLOUDFLARE_DOH, name, type);
+  return { ok: result.ok, values: result.rows.map((row) => row.value) };
+}
+
+async function defaultRecords(name: string, type: DnsType): Promise<{ ok: boolean; rows: DnsRow[] }> {
+  return queryDns(CLOUDFLARE_DOH, name, type);
+}
+
+async function defaultPropagate(name: string): Promise<PropagationRow[]> {
+  const answers = await mapPool(DNS_RESOLVERS, LOOKUP_CONCURRENCY, async (resolver) => {
+    const result = await queryDns(resolver.endpoint, name, "A");
+    return {
+      id: resolver.id,
+      name: resolver.name,
+      place: resolver.place,
+      placeEn: resolver.placeEn,
+      ok: result.ok,
+      values: result.rows.map((row) => row.value),
+    };
+  });
+  const cloudflare = answers.find((answer) => answer.id === "cloudflare");
+  return comparePropagation(cloudflare?.values ?? [], answers);
+}
+
+async function defaultPage(
+  domain: string,
+  path: string,
+): Promise<{ url: string; status: number | null; html: string | null } | null> {
+  let current = `https://${domain}${path.startsWith("/") ? path : `/${path}`}`;
+  try {
+    for (let hop = 0; hop < 3; hop += 1) {
+      const response = await fetch(current, {
+        redirect: "manual",
+        headers: { accept: "text/html", "user-agent": "OrangeCloudEdgeCheck/1.0" },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        await response.body?.cancel();
+        if (!location) return { url: current, status: response.status, html: null };
+        const next = new URL(location, current);
+        const host = next.hostname.toLowerCase();
+        const sameSite = host === domain || host === `www.${domain}` || host.endsWith(`.${domain}`);
+        if (next.protocol !== "https:" || !sameSite) return { url: current, status: response.status, html: null };
+        current = next.toString();
+        continue;
+      }
+      const html = await readCappedBody(response, MAX_PAGE_BYTES);
+      return { url: current, status: response.status, html };
+    }
+  } catch {
+    return { url: current, status: null, html: null };
+  }
+  return { url: current, status: null, html: null };
 }
 
 async function requestHeaders(url: string, method: "HEAD" | "GET"): Promise<Response | null> {
@@ -607,6 +737,9 @@ const defaultDeps: LookupDeps = {
   probe: defaultProbe,
   discover: defaultDiscover,
   network: defaultNetwork,
+  records: defaultRecords,
+  propagate: defaultPropagate,
+  page: defaultPage,
 };
 
 const emptyDiscover = async (): Promise<DiscoverResult> => ({
@@ -837,11 +970,62 @@ async function scanHosts(
   );
 }
 
-export async function inspectDomain(domain: string, deps: LookupDeps = defaultDeps): Promise<EdgeReport> {
+async function collectDns(domain: string, deps: LookupDeps): Promise<DnsPanel> {
+  const ask = async (name: string, type: DnsType): Promise<{ ok: boolean; rows: DnsRow[] }> => {
+    if (deps.records) return deps.records(name, type);
+    const result = await deps.lookup(name, type);
+    return { ok: result.ok, rows: result.ok ? result.values.map((value) => ({ type, ttl: null, value })) : [] };
+  };
+  try {
+    const packets = await mapPool([...PANEL_TYPES], LOOKUP_CONCURRENCY, (type) => ask(domain, type));
+    const rows = packets.flatMap((packet) => packet.rows).slice(0, 80);
+    const ds = packets[PANEL_TYPES.indexOf("DS")];
+    const dnssec = !ds || !ds.ok ? "unknown" : ds.rows.length > 0 ? "signed" : "unsigned";
+    const addresses: string[] = [];
+    for (const row of rows) {
+      if (row.type !== "A" && row.type !== "AAAA") continue;
+      if (addresses.includes(row.value)) continue;
+      addresses.push(row.value);
+      if (addresses.length >= 4) break;
+    }
+    const ptr: { ip: string; names: string[] }[] = [];
+    for (const ip of addresses) {
+      const name = ptrQueryName(ip);
+      if (!name) continue;
+      const looked = await ask(name, "PTR");
+      const names = looked.ok ? looked.rows.map((row) => row.value).slice(0, 4) : [];
+      if (names.length > 0) ptr.push({ ip, names });
+    }
+    return { rows, dnssec, ptr, propagation: [] };
+  } catch {
+    return { rows: [], dnssec: "unknown", ptr: [], propagation: [] };
+  }
+}
+
+function emptyPage(domain: string, path: string): PageCdn {
+  return {
+    url: `https://${domain}${path.startsWith("/") ? path : `/${path}`}`,
+    fetched: false,
+    status: null,
+    resources: [],
+    cdns: [],
+    truncated: false,
+  };
+}
+
+export async function inspectDomain(
+  domain: string,
+  deps: LookupDeps = defaultDeps,
+  options: { path?: string } = {},
+): Promise<EdgeReport> {
+  const path = options.path && options.path.startsWith("/") ? options.path : "/";
   const discover = deps.discover ?? emptyDiscover;
   const probesLeft = { count: MAX_HTTP_PROBES };
   const discoveredPromise = discover(domain);
   const nameserverPromise = deps.lookup(domain, "NS");
+  const dnsPromise = collectDns(domain, deps);
+  const propagationPromise = deps.propagate ? deps.propagate(domain).catch(() => []) : Promise.resolve([]);
+  const pagePromise = deps.page ? deps.page(domain, path).catch(() => null) : Promise.resolve(null);
   const base = await scanHosts(hostsForDomain(domain), deps, probesLeft);
   let discovered: DiscoverResult;
   try {
@@ -853,11 +1037,25 @@ export async function inspectDomain(domain: string, deps: LookupDeps = defaultDe
   const extraHosts = extras.hosts.length > 0 ? await scanHosts(extras.hosts, deps, probesLeft) : [];
   const hosts = [...base, ...extraHosts];
 
+  let pageDoc: { url: string; status: number | null; html: string | null } | null = null;
+  try {
+    pageDoc = await pagePromise;
+  } catch {
+    pageDoc = null;
+  }
+  const extracted = pageDoc?.html ? extractPageResources(pageDoc.html, pageDoc.url || emptyPage(domain, path).url, MAX_PAGE_HOSTS) : { resources: [] as PageResource[], truncated: false };
+  const pageTargets = extracted.resources
+    .filter((resource) => !hosts.some((host) => host.host === resource.host))
+    .map((resource) => ({ role: "page", host: resource.host }));
+  const pageProbes = { count: MAX_PAGE_PROBES };
+  const pageOnly = pageTargets.length > 0 ? await scanHosts(pageTargets, deps, pageProbes) : [];
+  const networkHosts = [...hosts, ...pageOnly];
+
   if (deps.network) {
     const addresses: string[] = [];
     const seenIps = new Set<string>();
     let overflow = false;
-    for (const host of hosts) {
+    for (const host of networkHosts) {
       for (const ip of [...host.records.a, ...host.records.aaaa]) {
         if (!isPublicIp(ip) || isCloudflareIp(ip) || seenIps.has(ip)) continue;
         seenIps.add(ip);
@@ -877,7 +1075,7 @@ export async function inspectDomain(domain: string, deps: LookupDeps = defaultDe
     });
     const lookedUp = new Map<string, NetworkInfo | null>();
     addresses.forEach((ip, index) => lookedUp.set(ip, infos[index] ?? null));
-    for (const host of hosts) {
+    for (const host of networkHosts) {
       const ips = [...host.records.a, ...host.records.aaaa];
       const ip = ips.find((item) => lookedUp.has(item));
       const info = ip ? lookedUp.get(ip) : undefined;
@@ -887,7 +1085,7 @@ export async function inspectDomain(domain: string, deps: LookupDeps = defaultDe
       }
     }
   }
-  for (const host of hosts) {
+  for (const host of networkHosts) {
     if (host.network || !host.hosting) continue;
     const ip = [...host.records.a, ...host.records.aaaa].find((item) => isPublicIp(item)) ?? "";
     host.network = { ip, asn: null, org: null, provider: host.hosting, cdn: null, country: null, city: null };
@@ -915,8 +1113,42 @@ export async function inspectDomain(domain: string, deps: LookupDeps = defaultDe
   const setupNote = setupRecommendation(mode);
   if (setupNote) recommendations.push(setupNote);
 
+  const dns = await dnsPromise;
+  try {
+    dns.propagation = await propagationPromise;
+  } catch {
+    dns.propagation = [];
+  }
+  const pageResources = extracted.resources.map((resource) => {
+    const match = hosts.find((host) => host.host === resource.host) ?? pageOnly.find((host) => host.host === resource.host);
+    return {
+      host: resource.host,
+      kinds: resource.kinds,
+      count: resource.count,
+      status: match?.status ?? "no_record",
+      provider: match?.provider ?? null,
+    };
+  });
+  const pageCdns: string[] = [];
+  for (const resource of pageResources) {
+    if (resource.status !== "cloudflare" && resource.status !== "other_cdn") continue;
+    if (!resource.provider || pageCdns.includes(resource.provider)) continue;
+    pageCdns.push(resource.provider);
+  }
+  const page: PageCdn = pageDoc
+    ? {
+        url: pageDoc.url || emptyPage(domain, path).url,
+        fetched: true,
+        status: pageDoc.status,
+        resources: pageResources,
+        cdns: pageCdns,
+        truncated: extracted.truncated,
+      }
+    : emptyPage(domain, path);
+
   return {
     domain,
+    path,
     hosts,
     summary: summarize(hosts),
     recommendations,
@@ -929,6 +1161,8 @@ export async function inspectDomain(domain: string, deps: LookupDeps = defaultDe
     },
     cdn,
     networks,
+    dns,
+    page,
   };
 }
 
@@ -1063,24 +1297,24 @@ function json(body: unknown, status: number, cacheControl: string, extra?: Recor
   return new Response(JSON.stringify(body), { status, headers });
 }
 
-function cacheRequest(domain: string): Request {
-  return new Request(`https://edge-check.cache/v3/${domain}`);
+function cacheRequest(domain: string, path: string): Request {
+  return new Request(`https://edge-check.cache/v4/${domain}${encodeURI(path)}`);
 }
 
-async function readCache(domain: string): Promise<Response | null> {
+async function readCache(domain: string, path: string): Promise<Response | null> {
   try {
     if (typeof caches === "undefined" || !caches.default) return null;
-    return (await caches.default.match(cacheRequest(domain))) ?? null;
+    return (await caches.default.match(cacheRequest(domain, path))) ?? null;
   } catch {
     return null;
   }
 }
 
-async function writeCache(domain: string, report: EdgeReport, ctx?: ExecutionContext): Promise<void> {
+async function writeCache(domain: string, path: string, report: EdgeReport, ctx?: ExecutionContext): Promise<void> {
   const put = (async () => {
     try {
       if (typeof caches === "undefined" || !caches.default) return;
-      await caches.default.put(cacheRequest(domain), json(report, 200, "public, max-age=300"));
+      await caches.default.put(cacheRequest(domain, path), json(report, 200, "public, max-age=300"));
     } catch {
       /* wrangler dev can run without a persistent default cache */
     }
@@ -1095,7 +1329,7 @@ export async function handleEdgeCheck(
   ctx?: ExecutionContext,
 ): Promise<Response> {
   const raw = new URL(request.url).searchParams.get("domain") ?? "";
-  const normalized = normalizeDomain(raw);
+  const normalized = normalizeTarget(raw);
   if ("error" in normalized) {
     console.log(JSON.stringify({ message: "edge-check rejected", reason: "invalid_domain" }));
     return json({ error: normalized.error }, 400, "no-store");
@@ -1107,7 +1341,7 @@ export async function handleEdgeCheck(
     return json({ error: RATE_LIMIT_MESSAGE }, 429, "no-store", { "retry-after": "60" });
   }
 
-  const cached = await readCache(normalized.domain);
+  const cached = await readCache(normalized.domain, normalized.path);
   if (cached) {
     console.log(JSON.stringify({ message: "edge-check", domain: normalized.domain, cache: "hit" }));
     const headers = new Headers(cached.headers);
@@ -1116,11 +1350,12 @@ export async function handleEdgeCheck(
   }
 
   try {
-    const report = await inspectDomain(normalized.domain);
+    const report = await inspectDomain(normalized.domain, defaultDeps, { path: normalized.path });
     console.log(
       JSON.stringify({
         message: "edge-check",
         domain: normalized.domain,
+        path: normalized.path,
         cache: "miss",
         cloudflare: report.summary.cloudflare,
         other_cdn: report.summary.other_cdn,
@@ -1129,9 +1364,11 @@ export async function handleEdgeCheck(
         setup: report.setup.mode,
         scanned: report.discovery.scanned,
         found: report.discovery.found,
+        dns: report.dns.rows.length,
+        pageCdns: report.page.cdns.length,
       }),
     );
-    await writeCache(normalized.domain, report, ctx);
+    await writeCache(normalized.domain, normalized.path, report, ctx);
     return json(report, 200, "no-store");
   } catch (error) {
     console.error(

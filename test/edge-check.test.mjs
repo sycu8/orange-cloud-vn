@@ -20,10 +20,12 @@ import {
   MAX_DNS_HOSTS,
   MAX_HTTP_PROBES,
   normalizeDomain,
+  normalizeTarget,
   parseCertificateNames,
   providerFromCname,
   providerFromHeaders,
 } from "../src/edge-check.ts";
+import { comparePropagation, extractPageResources, parseDnsAnswers, ptrQueryName } from "../src/dns-view.ts";
 import {
   cdnNameFromAsn,
   cymruQueryName,
@@ -370,6 +372,10 @@ test("inspectDomain skips header probes for mail and private addresses", async (
   assert.equal(report.discovery.source, "common");
   assert.equal(report.discovery.scanned, 12);
   assert.equal(report.setup.mode, "partial");
+  assert.equal(report.path, "/");
+  assert.ok(report.dns.rows.some((row) => row.type === "A" && row.value === "104.16.8.8"));
+  assert.equal(report.dns.dnssec, "unsigned");
+  assert.equal(report.page.fetched, false);
 });
 
 test("certificate names stay on the domain and the scan cap prefers shorter hosts", () => {
@@ -557,6 +563,105 @@ test("vanity nameservers on cloudflare addresses count as full dns", async () =>
   });
   assert.equal(report.setup.mode, "full");
   assert.deepEqual(report.setup.nameservers, ["ns1.example.com", "ns2.example.com"]);
+});
+
+test("dns answers keep ttl and a page url keeps its path", () => {
+  const parsed = parseDnsAnswers(
+    {
+      Status: 0,
+      Answer: [
+        { type: 1, TTL: 60, data: "93.184.216.34" },
+        { type: 15, TTL: 300, data: "10 mail.example.com." },
+        { type: 16, TTL: 120, data: '"v=spf1 include:_spf.example.com ~all"' },
+      ],
+    },
+    "A",
+  );
+  assert.equal(parsed.ok, true);
+  assert.deepEqual(parsed.rows, [{ type: "A", ttl: 60, value: "93.184.216.34" }]);
+  const mail = parseDnsAnswers(
+    { Status: 0, Answer: [{ type: 15, TTL: 300, data: "10 MAIL.Example.com." }] },
+    "MX",
+  );
+  assert.equal(mail.rows[0].value, "10 mail.example.com");
+  const txt = parseDnsAnswers(
+    { Status: 0, Answer: [{ type: 16, TTL: 120, data: '"v=spf1 include:_spf.example.com ~all"' }] },
+    "TXT",
+  );
+  assert.equal(txt.rows[0].value, "v=spf1 include:_spf.example.com ~all");
+  assert.equal(ptrQueryName("20.29.134.23"), "23.134.29.20.in-addr.arpa");
+  assert.equal(normalizeTarget("https://Example.com:443/docs/intro?q=1#top").path, "/docs/intro");
+  assert.equal(normalizeTarget("example.com").path, "/");
+
+  const propagation = comparePropagation(
+    ["93.184.216.34"],
+    [
+      { id: "cloudflare", name: "Cloudflare", place: "Toàn cầu", placeEn: "Global", ok: true, values: ["93.184.216.34"] },
+      { id: "google", name: "Google", place: "Toàn cầu", placeEn: "Global", ok: true, values: ["198.51.100.9"] },
+      { id: "quad9", name: "Quad9", place: "Toàn cầu", placeEn: "Global", ok: false, values: [] },
+    ],
+  );
+  assert.deepEqual(
+    propagation.map((row) => row.state),
+    ["match", "differ", "error"],
+  );
+});
+
+test("page html names the cdn behind linked resources", () => {
+  const extracted = extractPageResources(
+    `<html><script src="https://cdn.example.net/app.js"></script>
+      <script src="https://cdn.example.net/app.js"></script>
+      <img src="/logo.png"><img src="data:image/gif;base64,aaaa">
+      <link rel="stylesheet" href="https://static.cdn77.org/a.css">
+      <link rel="preconnect" href="https://fonts.example.net">
+      <iframe src="https://player.example.org/v"></iframe></html>`,
+    "https://example.com/docs",
+  );
+  assert.deepEqual(
+    extracted.resources.map((item) => item.host),
+    ["cdn.example.net", "example.com", "static.cdn77.org", "player.example.org"],
+  );
+  assert.equal(extracted.resources[0].count, 2);
+  assert.equal(extracted.resources[0].kinds[0], "script");
+});
+
+test("a fetched page reports each resource cdn without mixing it into the hostname scan", async () => {
+  const report = await inspectDomain("example.com", {
+    async lookup(name, type) {
+      if (type === "NS") return { ok: true, values: ["ns1.example.net"] };
+      if (name === "example.com" && type === "A") return { ok: true, values: ["93.184.216.34"] };
+      if (name === "cdn.example.net" && type === "CNAME") return { ok: true, values: ["d111.cloudfront.net"] };
+      if ((name === "ns1.example.net") && type === "A") return { ok: true, values: ["93.184.216.34"] };
+      return { ok: true, values: [] };
+    },
+    async probe() {
+      return null;
+    },
+    async page() {
+      return {
+        url: "https://example.com/docs",
+        status: 200,
+        html: '<script src="https://cdn.example.net/app.js"></script><img src="https://example.com/logo.png">',
+      };
+    },
+    async propagate() {
+      return comparePropagation(["93.184.216.34"], [
+        { id: "cloudflare", name: "Cloudflare", place: "Toàn cầu", placeEn: "Global", ok: true, values: ["93.184.216.34"] },
+      ]);
+    },
+  }, { path: "/docs" });
+
+  assert.equal(report.path, "/docs");
+  assert.equal(report.page.fetched, true);
+  assert.equal(report.page.status, 200);
+  assert.deepEqual(report.page.cdns, ["Amazon CloudFront"]);
+  const script = report.page.resources.find((item) => item.host === "cdn.example.net");
+  assert.equal(script.provider, "Amazon CloudFront");
+  assert.equal(script.status, "other_cdn");
+  assert.equal(report.hosts.some((host) => host.host === "cdn.example.net"), false);
+  assert.equal(report.dns.propagation[0].state, "match");
+  const image = report.page.resources.find((item) => item.host === "example.com");
+  assert.equal(image.status, "direct");
 });
 
 function request(url, ip, init = {}) {
