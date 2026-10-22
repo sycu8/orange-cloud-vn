@@ -1,4 +1,8 @@
 import { isCloudflareIp, isPublicIp } from "./cloudflare-ips.ts";
+import {
+  lookupNetworkProvider,
+  type NetworkInfo,
+} from "./network-provider.ts";
 
 export const INVALID_DOMAIN_MESSAGE =
   "Tên miền không hợp lệ. Chỉ dùng hostname công khai, không dùng địa chỉ IP, localhost hay tên nội bộ.";
@@ -48,7 +52,15 @@ const LOOKUP_CONCURRENCY = 4;
 const DNS_TIMEOUT_MS = 3000;
 
 export type HostStatus = "cloudflare" | "other_cdn" | "direct" | "no_record";
-export type DnsType = "A" | "AAAA" | "CNAME";
+export type DnsType = "A" | "AAAA" | "CNAME" | "NS" | "TXT";
+export type SetupMode = "full" | "partial" | "none" | "unknown";
+
+/** Common names always run. Certificate Transparency names fill the rest, then stop. */
+export const MAX_DNS_HOSTS = 40;
+export const MAX_HTTP_PROBES = 16;
+export const MAX_NETWORK_LOOKUPS = 24;
+const MAX_CT_NAMES = 400;
+const MAX_CT_BYTES = 1_500_000;
 
 export type DnsRecords = {
   cname: string[];
@@ -62,8 +74,11 @@ export type HostResult = {
   records: DnsRecords;
   status: HostStatus;
   provider: string | null;
+  network: NetworkInfo | null;
   evidence: string[];
   originExposed: boolean;
+  /** Set when a CNAME points at a cloud host that is not itself a CDN. */
+  hosting: string | null;
 };
 
 export type RecommendationLink = {
@@ -80,11 +95,31 @@ export type Recommendation = {
   links: RecommendationLink[];
 };
 
+export type DiscoveryInfo = {
+  source: "crt.sh" | "common";
+  found: number;
+  scanned: number;
+  truncated: boolean;
+};
+
 export type EdgeReport = {
   domain: string;
   hosts: HostResult[];
   summary: Record<HostStatus, number>;
   recommendations: Recommendation[];
+  setup: {
+    mode: SetupMode;
+    nameservers: string[];
+  };
+  discovery: DiscoveryInfo;
+  cdn: string[];
+  networks: string[];
+};
+
+export type DiscoverResult = {
+  names: string[];
+  source: "crt.sh" | "common";
+  truncated: boolean;
 };
 
 type ProviderId =
@@ -93,13 +128,18 @@ type ProviderId =
   | "fastly"
   | "akamai"
   | "azure"
+  | "azurehost"
+  | "aws"
   | "google"
   | "vercel"
   | "netlify"
   | "bunny"
   | "byteplus"
   | "alibaba"
-  | "tencent";
+  | "tencent"
+  | "zscaler"
+  | "imperva"
+  | "sucuri";
 
 const PROVIDER_LABEL: Record<ProviderId, string> = {
   cloudflare: "Cloudflare",
@@ -107,6 +147,8 @@ const PROVIDER_LABEL: Record<ProviderId, string> = {
   fastly: "Fastly",
   akamai: "Akamai",
   azure: "Azure Front Door",
+  azurehost: "Microsoft Azure",
+  aws: "Amazon Web Services",
   google: "Google",
   vercel: "Vercel",
   netlify: "Netlify",
@@ -114,14 +156,24 @@ const PROVIDER_LABEL: Record<ProviderId, string> = {
   byteplus: "BytePlus",
   alibaba: "Alibaba CDN",
   tencent: "Tencent CDN",
+  zscaler: "Zscaler",
+  imperva: "Imperva",
+  sucuri: "Sucuri",
 };
+
+const HOSTING_PROVIDERS = new Set<ProviderId>(["aws", "azurehost"]);
 
 const CNAME_SUFFIXES: { id: ProviderId; suffixes: string[] }[] = [
   { id: "cloudflare", suffixes: ["cdn.cloudflare.net", "cloudflare.net", "pages.dev", "workers.dev"] },
   { id: "cloudfront", suffixes: ["cloudfront.net"] },
   { id: "fastly", suffixes: ["fastly.net", "fastlylb.net"] },
-  { id: "akamai", suffixes: ["akamai.net", "akamaiedge.net", "edgekey.net", "edgesuite.net", "akamaized.net"] },
+  { id: "akamai", suffixes: ["akamai.net", "akamaiedge.net", "akamaihd.net", "edgekey.net", "edgesuite.net", "akamaized.net"] },
   { id: "azure", suffixes: ["azurefd.net", "azureedge.net"] },
+  { id: "azurehost", suffixes: ["azurewebsites.net", "cloudapp.azure.com", "trafficmanager.net"] },
+  { id: "aws", suffixes: ["awsglobalaccelerator.com", "amazonaws.com"] },
+  { id: "zscaler", suffixes: ["zscaler.net", "zscloud.net", "zscaler.com"] },
+  { id: "imperva", suffixes: ["incapdns.net", "impervadns.net"] },
+  { id: "sucuri", suffixes: ["sucuri.net"] },
   { id: "google", suffixes: ["googleusercontent.com", "ghs.googlehosted.com"] },
   { id: "vercel", suffixes: ["vercel-dns.com"] },
   { id: "netlify", suffixes: ["netlify.app"] },
@@ -135,6 +187,8 @@ export type LookupResult = { ok: boolean; values: string[] };
 export type LookupDeps = {
   lookup: (name: string, type: DnsType) => Promise<LookupResult>;
   probe: (host: string) => Promise<Headers | null>;
+  discover?: (domain: string) => Promise<DiscoverResult>;
+  network?: (ip: string) => Promise<NetworkInfo | null>;
 };
 
 export function normalizeDomain(raw: string): { domain: string } | { error: string } {
@@ -211,6 +265,11 @@ function specificProviderFromHeaders(headers: Headers): ProviderId | null {
   if (headers.has("x-vercel-id")) return "vercel";
   if (headers.has("x-nf-request-id")) return "netlify";
   if (server.includes("bunnycdn")) return "bunny";
+  if (headers.has("x-sucuri-id") || server.includes("sucuri")) return "sucuri";
+  if (headers.has("x-iinfo")) return "imperva";
+  const cdnHeader = (headers.get("x-cdn") ?? "").toLowerCase();
+  if (cdnHeader.includes("incapsula") || cdnHeader.includes("imperva")) return "imperva";
+  if (server.includes("zscaler") || via.includes("zscaler")) return "zscaler";
   return null;
 }
 
@@ -235,6 +294,9 @@ function headerEvidence(headers: Headers, includeCloudflareStamp: boolean): stri
     "x-azure-ref",
     "x-vercel-id",
     "x-nf-request-id",
+    "x-sucuri-id",
+    "x-iinfo",
+    "x-cdn",
   ];
   const items: string[] = [];
   for (const name of names) {
@@ -267,9 +329,16 @@ export function classifyHost(input: {
   };
   const specificHeader = input.headers ? specificProviderFromHeaders(input.headers) : null;
   let cnameProvider: ProviderId | null = null;
+  let hosting: string | null = null;
   for (const target of records.cname) {
-    cnameProvider = providerFromCname(target);
-    if (cnameProvider) break;
+    const matched = providerFromCname(target);
+    if (!matched) continue;
+    if (HOSTING_PROVIDERS.has(matched)) {
+      hosting = PROVIDER_LABEL[matched];
+      continue;
+    }
+    cnameProvider = matched;
+    break;
   }
   const addresses = [...records.a, ...records.aaaa];
   const ipCloudflare = addresses.some((ip) => isCloudflareIp(ip));
@@ -308,8 +377,10 @@ export function classifyHost(input: {
     records,
     status,
     provider: providerId ? PROVIDER_LABEL[providerId] : null,
+    network: null,
     evidence,
     originExposed,
+    hosting,
   };
 }
 
@@ -417,7 +488,7 @@ async function mapPool<T, R>(
   return results;
 }
 
-const DNS_TYPE_CODE: Record<DnsType, number> = { A: 1, AAAA: 28, CNAME: 5 };
+const DNS_TYPE_CODE: Record<DnsType, number> = { A: 1, AAAA: 28, CNAME: 5, NS: 2, TXT: 16 };
 
 async function defaultLookup(name: string, type: DnsType): Promise<LookupResult> {
   const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
@@ -470,13 +541,254 @@ async function defaultProbe(host: string): Promise<Headers | null> {
   return headers;
 }
 
+async function readCappedBody(response: Response, maxBytes: number): Promise<string | null> {
+  const declared = Number(response.headers.get("content-length") || "0");
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    await response.body?.cancel();
+    return null;
+  }
+  if (!response.body) return "";
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } catch {
+    await reader.cancel().catch(() => undefined);
+    return null;
+  }
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(merged);
+}
+
+async function defaultDiscover(domain: string): Promise<DiscoverResult> {
+  try {
+    const response = await fetch(`https://crt.sh/?q=${encodeURIComponent(`%.${domain}`)}&output=json`, {
+      headers: { accept: "application/json", "user-agent": "OrangeCloudEdgeCheck/1.0" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) {
+      await response.body?.cancel();
+      return { names: [], source: "common", truncated: false };
+    }
+    const body = await readCappedBody(response, MAX_CT_BYTES);
+    if (body === null) return { names: [], source: "common", truncated: true };
+    const parsed = parseCertificateNames(domain, JSON.parse(body) as unknown);
+    return { names: parsed.names, source: "crt.sh", truncated: parsed.truncated };
+  } catch {
+    return { names: [], source: "common", truncated: false };
+  }
+}
+
+async function defaultNetwork(ip: string): Promise<NetworkInfo | null> {
+  return lookupNetworkProvider(ip, async (name) => {
+    const result = await defaultLookup(name, "TXT");
+    return result.ok ? (result.values[0] ?? null) : null;
+  });
+}
+
 const defaultDeps: LookupDeps = {
   lookup: defaultLookup,
   probe: defaultProbe,
+  discover: defaultDiscover,
+  network: defaultNetwork,
 };
 
-export async function inspectDomain(domain: string, deps: LookupDeps = defaultDeps): Promise<EdgeReport> {
-  const hosts = await mapPool(hostsForDomain(domain), LOOKUP_CONCURRENCY, async (item) => {
+const emptyDiscover = async (): Promise<DiscoverResult> => ({
+  names: [],
+  source: "common",
+  truncated: false,
+});
+
+export function parseCertificateNames(domain: string, payload: unknown): { names: string[]; truncated: boolean } {
+  const found = new Set<string>();
+  let truncated = false;
+  if (!Array.isArray(payload)) return { names: [], truncated: false };
+  for (const row of payload) {
+    if (!row || typeof row !== "object") continue;
+    const record = row as { name_value?: unknown; common_name?: unknown };
+    const raw = [record.name_value, record.common_name].filter((item): item is string => typeof item === "string").join("\n");
+    for (const part of raw.split(/[\s,]+/)) {
+      let name = part.trim().toLowerCase().replace(/\.$/, "");
+      if (name.startsWith("*.")) name = name.slice(2);
+      if (!name || name.includes("*")) continue;
+      if (name !== domain && !name.endsWith(`.${domain}`)) continue;
+      if (!HOST_RE.test(name)) continue;
+      if (found.has(name)) continue;
+      if (found.size >= MAX_CT_NAMES) {
+        truncated = true;
+        break;
+      }
+      found.add(name);
+    }
+    if (truncated) break;
+  }
+  const names = [...found].sort((left, right) => left.length - right.length || left.localeCompare(right));
+  return { names, truncated };
+}
+
+export function extraHostsForDomain(
+  domain: string,
+  discovered: readonly string[],
+): { hosts: { role: string; host: string }[]; truncated: boolean } {
+  const seen = new Set(hostsForDomain(domain).map((item) => item.host));
+  const extras: { role: string; host: string }[] = [];
+  const sorted = [...discovered].sort((left, right) => left.length - right.length || left.localeCompare(right));
+  for (const name of sorted) {
+    const host = name.toLowerCase().replace(/\.$/, "");
+    if (seen.has(host)) continue;
+    if (host !== domain && !host.endsWith(`.${domain}`)) continue;
+    if (!HOST_RE.test(host)) continue;
+    seen.add(host);
+    extras.push({ role: "subdomain", host });
+  }
+  const room = Math.max(0, MAX_DNS_HOSTS - hostsForDomain(domain).length);
+  return { hosts: extras.slice(0, room), truncated: extras.length > room };
+}
+
+export function classifySetup(
+  nameservers: readonly string[],
+  anyCloudflare: boolean,
+  lookupOk: boolean,
+  placement: "cloudflare" | "mixed" | "other" | "unknown" = "unknown",
+): SetupMode {
+  if (!lookupOk) return "unknown";
+  const names = nameservers
+    .map((item) => item.toLowerCase().replace(/\.$/, ""))
+    .filter((item) => HOST_RE.test(item));
+  if (names.length === 0) return anyCloudflare ? "partial" : "unknown";
+  const cloudflareNames = names.filter((item) => item.endsWith(".ns.cloudflare.com"));
+  if (cloudflareNames.length === names.length || placement === "cloudflare") return "full";
+  if (cloudflareNames.length > 0 || placement === "mixed" || anyCloudflare) return "partial";
+  if (placement === "other") return "none";
+  return "unknown";
+}
+
+async function nameserverPlacement(
+  nameservers: readonly string[],
+  deps: LookupDeps,
+): Promise<"cloudflare" | "mixed" | "other" | "unknown"> {
+  let cloudflare = 0;
+  let other = 0;
+  let unknown = 0;
+  await mapPool(nameservers, LOOKUP_CONCURRENCY, async (nameserver) => {
+    if (nameserver.endsWith(".ns.cloudflare.com")) {
+      cloudflare += 1;
+      return;
+    }
+    const [address, address6] = await Promise.all([deps.lookup(nameserver, "A"), deps.lookup(nameserver, "AAAA")]);
+    if (!address.ok && !address6.ok) {
+      unknown += 1;
+      return;
+    }
+    const ips = [...address.values, ...address6.values];
+    if (ips.length === 0) {
+      unknown += 1;
+      return;
+    }
+    if (ips.every((ip) => isCloudflareIp(ip))) cloudflare += 1;
+    else other += 1;
+  });
+  if (other > 0 && cloudflare > 0) return "mixed";
+  if (other > 0 && unknown === 0) return "other";
+  if (other > 0) return "mixed";
+  if (cloudflare === nameservers.length) return "cloudflare";
+  return "unknown";
+}
+
+function attachNetwork(host: HostResult, info: NetworkInfo): void {
+  host.network = info;
+  const notes = [`asn:${info.asn ?? "unknown"}`];
+  if (info.provider) notes.push(`net:${info.provider}`);
+  else if (info.org) notes.push(`net:${info.org}`);
+  const place = [info.city, info.country].filter((item): item is string => Boolean(item)).join(", ");
+  if (place) notes.push(`geo:${place}`);
+  host.evidence = [...host.evidence, ...notes].slice(0, 20);
+  if (host.status === "direct" && info.cdn) {
+    host.status = info.cdn === "Cloudflare" ? "cloudflare" : "other_cdn";
+    host.provider = info.cdn;
+    host.originExposed = false;
+    host.evidence = host.evidence.filter((item) => item !== "origin_ip_public");
+  }
+}
+
+function cdnLabels(hosts: readonly HostResult[]): string[] {
+  const labels: string[] = [];
+  for (const host of hosts) {
+    if (host.status !== "cloudflare" && host.status !== "other_cdn") continue;
+    if (!host.provider || labels.includes(host.provider)) continue;
+    labels.push(host.provider);
+  }
+  return labels;
+}
+
+function networkLabels(hosts: readonly HostResult[], cdn: readonly string[]): string[] {
+  const skip = new Set(cdn);
+  const labels: string[] = [];
+  for (const host of hosts) {
+    const label = host.network?.provider || host.network?.org;
+    if (!label || skip.has(label) || labels.includes(label)) continue;
+    labels.push(label);
+  }
+  return labels.slice(0, 12);
+}
+
+function setupRecommendation(mode: SetupMode): Recommendation | null {
+  if (mode === "full") {
+    return {
+      id: "setup-full",
+      tone: "good",
+      text: "Nameserver đang trỏ Cloudflare. Đây là Full DNS setup: vùng DNS công khai của tên miền nằm trên Cloudflare.",
+      textEn: "Nameservers point at Cloudflare. This is a Full DNS setup: the public zone is hosted on Cloudflare.",
+      links: [{ href: FULL_DNS, label: "Full DNS", labelEn: "Full DNS" }],
+    };
+  }
+  if (mode === "partial") {
+    return {
+      id: "setup-partial",
+      tone: "info",
+      text: "Có hostname đang đi qua Cloudflare trong khi nameserver không thuộc (hoặc chưa đủ) Cloudflare. Đây là Partial setup dạng CNAME.",
+      textEn:
+        "Some hostnames go through Cloudflare while the nameservers are not all Cloudflare. This is a Partial (CNAME) setup.",
+      links: [
+        { href: PARTIAL_DNS, label: "Partial DNS", labelEn: "Partial DNS" },
+        { href: FULL_DNS, label: "Full DNS", labelEn: "Full DNS" },
+      ],
+    };
+  }
+  if (mode === "unknown") {
+    return {
+      id: "setup-unknown",
+      tone: "info",
+      text: "Không đọc được nameserver, nên chưa phân biệt được Full DNS và Partial (CNAME) setup.",
+      textEn: "Nameservers could not be read, so Full DNS and Partial (CNAME) setup could not be told apart.",
+      links: [],
+    };
+  }
+  return null;
+}
+
+async function scanHosts(
+  items: readonly { role: string; host: string }[],
+  deps: LookupDeps,
+  probesLeft: { count: number },
+): Promise<HostResult[]> {
+  const resolved = await mapPool(items, LOOKUP_CONCURRENCY, async (item) => {
     const [cname, a, aaaa] = await Promise.all([
       deps.lookup(item.host, "CNAME"),
       deps.lookup(item.host, "A"),
@@ -488,26 +800,135 @@ export async function inspectDomain(domain: string, deps: LookupDeps = defaultDe
       aaaa: aaaa.values,
     };
     const notes: string[] = [];
-    const dnsFailed = !cname.ok && !a.ok && !aaaa.ok;
-    if (dnsFailed) notes.push("dns_lookup_failed");
-    const hasRecords = records.cname.length + records.a.length + records.aaaa.length > 0;
-    const privateAddress = [...records.a, ...records.aaaa].some((ip) => !isPublicIp(ip));
-    let headers: Headers | null = null;
-    if (item.role === "mail") notes.push("probe_skipped:mail");
-    else if (!hasRecords) notes.push("probe_skipped:no_record");
-    else if (privateAddress) notes.push("probe_skipped:private_address");
-    else {
-      headers = await deps.probe(item.host);
-      if (!headers) notes.push("probe_failed");
-    }
-    return classifyHost({ role: item.role, host: item.host, records, headers, notes });
+    if (!cname.ok && !a.ok && !aaaa.ok) notes.push("dns_lookup_failed");
+    return { role: item.role, host: item.host, records, notes, probe: false, headers: null as Headers | null };
   });
+
+  for (const row of resolved) {
+    const hasRecords = row.records.cname.length + row.records.a.length + row.records.aaaa.length > 0;
+    const privateAddress = [...row.records.a, ...row.records.aaaa].some((ip) => !isPublicIp(ip));
+    if (row.role === "mail") row.notes.push("probe_skipped:mail");
+    else if (!hasRecords) row.notes.push("probe_skipped:no_record");
+    else if (privateAddress) row.notes.push("probe_skipped:private_address");
+    else if (probesLeft.count <= 0) row.notes.push("probe_skipped:cap");
+    else {
+      row.probe = true;
+      probesLeft.count -= 1;
+    }
+  }
+
+  await mapPool(
+    resolved.filter((row) => row.probe),
+    LOOKUP_CONCURRENCY,
+    async (row) => {
+      row.headers = await deps.probe(row.host);
+      if (!row.headers) row.notes.push("probe_failed");
+    },
+  );
+
+  return resolved.map((row) =>
+    classifyHost({
+      role: row.role,
+      host: row.host,
+      records: row.records,
+      headers: row.headers,
+      notes: row.notes,
+    }),
+  );
+}
+
+export async function inspectDomain(domain: string, deps: LookupDeps = defaultDeps): Promise<EdgeReport> {
+  const discover = deps.discover ?? emptyDiscover;
+  const probesLeft = { count: MAX_HTTP_PROBES };
+  const discoveredPromise = discover(domain);
+  const nameserverPromise = deps.lookup(domain, "NS");
+  const base = await scanHosts(hostsForDomain(domain), deps, probesLeft);
+  let discovered: DiscoverResult;
+  try {
+    discovered = await discoveredPromise;
+  } catch {
+    discovered = { names: [], source: "common", truncated: false };
+  }
+  const extras = extraHostsForDomain(domain, discovered.names);
+  const extraHosts = extras.hosts.length > 0 ? await scanHosts(extras.hosts, deps, probesLeft) : [];
+  const hosts = [...base, ...extraHosts];
+
+  if (deps.network) {
+    const addresses: string[] = [];
+    const seenIps = new Set<string>();
+    let overflow = false;
+    for (const host of hosts) {
+      for (const ip of [...host.records.a, ...host.records.aaaa]) {
+        if (!isPublicIp(ip) || isCloudflareIp(ip) || seenIps.has(ip)) continue;
+        seenIps.add(ip);
+        if (addresses.length >= MAX_NETWORK_LOOKUPS) {
+          overflow = true;
+          continue;
+        }
+        addresses.push(ip);
+      }
+    }
+    const infos = await mapPool(addresses, LOOKUP_CONCURRENCY, async (ip) => {
+      try {
+        return await deps.network!(ip);
+      } catch {
+        return null;
+      }
+    });
+    const lookedUp = new Map<string, NetworkInfo | null>();
+    addresses.forEach((ip, index) => lookedUp.set(ip, infos[index] ?? null));
+    for (const host of hosts) {
+      const ips = [...host.records.a, ...host.records.aaaa];
+      const ip = ips.find((item) => lookedUp.has(item));
+      const info = ip ? lookedUp.get(ip) : undefined;
+      if (info) attachNetwork(host, info);
+      else if (overflow && ips.some((item) => isPublicIp(item) && !isCloudflareIp(item) && !lookedUp.has(item))) {
+        host.evidence = [...host.evidence, "network_lookup_capped"].slice(0, 20);
+      }
+    }
+  }
+  for (const host of hosts) {
+    if (host.network || !host.hosting) continue;
+    const ip = [...host.records.a, ...host.records.aaaa].find((item) => isPublicIp(item)) ?? "";
+    host.network = { ip, asn: null, org: null, provider: host.hosting, cdn: null, country: null, city: null };
+  }
+
+  let nsResult: LookupResult;
+  try {
+    nsResult = await nameserverPromise;
+  } catch {
+    nsResult = { ok: false, values: [] };
+  }
+  const nameservers = (nsResult.ok ? nsResult.values : [])
+    .map((item) => item.toLowerCase().replace(/\.$/, ""))
+    .filter((item) => HOST_RE.test(item))
+    .slice(0, 8);
+  const anyCloudflare = hosts.some((host) => host.status === "cloudflare");
+  const placement =
+    nsResult.ok && nameservers.some((item) => !item.endsWith(".ns.cloudflare.com"))
+      ? await nameserverPlacement(nameservers, deps)
+      : "unknown";
+  const mode = classifySetup(nameservers, anyCloudflare, nsResult.ok, placement);
+  const cdn = cdnLabels(hosts);
+  const networks = networkLabels(hosts, cdn);
+  const recommendations = buildRecommendations(hosts);
+  const setupNote = setupRecommendation(mode);
+  if (setupNote) recommendations.push(setupNote);
 
   return {
     domain,
     hosts,
     summary: summarize(hosts),
-    recommendations: buildRecommendations(hosts),
+    recommendations,
+    setup: { mode, nameservers },
+    discovery: {
+      source: discovered.source === "crt.sh" ? "crt.sh" : "common",
+      found: discovered.source === "crt.sh" ? discovered.names.length : 0,
+      scanned: hosts.length,
+      truncated: Boolean(discovered.truncated) || extras.truncated,
+    },
+    cdn,
+    networks,
   };
 }
 
@@ -643,7 +1064,7 @@ function json(body: unknown, status: number, cacheControl: string, extra?: Recor
 }
 
 function cacheRequest(domain: string): Request {
-  return new Request(`https://edge-check.cache/v2/${domain}`);
+  return new Request(`https://edge-check.cache/v3/${domain}`);
 }
 
 async function readCache(domain: string): Promise<Response | null> {
@@ -705,6 +1126,9 @@ export async function handleEdgeCheck(
         other_cdn: report.summary.other_cdn,
         direct: report.summary.direct,
         no_record: report.summary.no_record,
+        setup: report.setup.mode,
+        scanned: report.discovery.scanned,
+        found: report.discovery.found,
       }),
     );
     await writeCache(normalized.domain, report, ctx);
