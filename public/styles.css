@@ -2170,6 +2170,15 @@ h3 {
   font-size: 0.95rem;
 }
 
+.ecc-section {
+  margin-top: 1.6rem;
+}
+
+.ecc-section-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
 .ecc-facts {
   display: grid;
   gap: 0.55rem;

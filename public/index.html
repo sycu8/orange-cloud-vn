@@ -172,7 +172,7 @@
               Orange Cloud là dự án cá nhân. Trang liệt kê các bản demo chạy trên Cloudflare — không máy chủ tự vận hành, phân phối từ edge, sẵn sàng gần như 100%. Danh sách sẽ còn mở rộng.
             </p>
             <div class="actions">
-              <a class="btn btn-solid" href="/tools/edge-coverage/" data-en="Check edge coverage">Kiểm tra phủ edge</a>
+              <a class="btn btn-solid" href="https://lookup.orangecloud.vn/" data-en="Check edge coverage">Kiểm tra phủ edge</a>
               <a class="btn" href="#projects" data-en="View projects">Xem dự án</a>
               <a class="btn" href="/about/" data-en="About">Giới thiệu</a>
             </div>
@@ -184,10 +184,10 @@
             <p class="eyebrow" id="live-label"><span class="dot" aria-hidden="true"></span><span data-en="Live">Đang chạy</span></p>
             <ul class="live-list">
               <li>
-                <a href="/tools/edge-coverage/">
+                <a href="https://lookup.orangecloud.vn/">
                   <span class="live-name" data-en="Edge coverage">Kiểm tra phủ edge</span>
                   <span class="live-meta">
-                    <span class="live-host">orangecloud.vn/tools/edge-coverage</span>
+                    <span class="live-host">lookup.orangecloud.vn</span>
                   </span>
                 </a>
               </li>
@@ -303,13 +303,13 @@
                 <span class="idx">01</span>
                 <span class="id">
                   <span class="name" data-en="Edge coverage check">Kiểm tra phủ edge</span>
-                  <span class="lede" data-en="Scan subdomains, tell Full DNS from Partial setup, and name the CDN and IP provider.">Quét subdomain, phân biệt Full DNS với Partial, và gọi tên CDN cùng nhà cung cấp IP.</span>
+                  <span class="lede" data-en="DNS records, resolver comparison, subdomain scan, and the CDN used on the page.">Bản ghi DNS, đối chiếu resolver, quét subdomain và CDN trên trang.</span>
                 </span>
                 <span class="pill pill-live" data-en="Live">Đang chạy</span>
               </summary>
               <div class="dossier"><div class="dossier-inner"><div class="dossier-grid">
                 <div class="dossier-copy">
-                  <p data-en="Scans common hostnames plus names from Certificate Transparency. It tells Cloudflare Full DNS from Partial (CNAME) setup, and names the CDN and the provider behind non-Cloudflare IPs from CNAME, headers, and ASN. The notes are informational.">Quét hostname phổ biến và tên từ Certificate Transparency. Phân biệt Full DNS với Partial (CNAME) trên Cloudflare, rồi gọi tên CDN và nhà cung cấp của IP ngoài Cloudflare bằng CNAME, header và ASN. Các ghi chú chỉ mang tính tham khảo.</p>
+                  <p data-en="Shows DNS records and compares public resolvers, scans Certificate Transparency names, and names the CDN behind the page and each hostname from CNAME, headers, and ASN. The notes are informational.">Hiện bản ghi DNS và đối chiếu resolver công khai, quét tên từ Certificate Transparency, rồi gọi tên CDN của trang và từng hostname bằng CNAME, header và ASN. Các ghi chú chỉ mang tính tham khảo.</p>
                   <p class="note" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc. Results are heuristics, not an official scan.">Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc. Kết quả là suy đoán, không phải bản quét chính thức.</p>
                   <div class="actions">
                     <a class="btn ext" href="https://github.com/sycu8/orange-cloud-vn" target="_blank" rel="noopener noreferrer"><span data-en="Source">Mã nguồn</span> <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a> <a class="btn btn-solid" href="/tools/edge-coverage/"><span data-en="Open the check">Mở trang kiểm tra</span></a>
@@ -318,7 +318,7 @@
                 <div>
                   <h3 data-en="Milestones">Mốc</h3>
                   <ol>
-                    <li data-en="October 2026 — live at orangecloud.vn/tools/edge-coverage/.">10/2026 — đang chạy tại orangecloud.vn/tools/edge-coverage/.</li>
+                    <li data-en="October 2026 — live at lookup.orangecloud.vn.">10/2026 — đang chạy tại lookup.orangecloud.vn.</li>
                     <li data-en="Starts with twelve hostnames: apex, www, api, cdn, app, static, assets, img, mail, shop, m, blog. Certificate Transparency names are added up to the scan cap.">Bắt đầu với mười hai hostname: apex, www, api, cdn, app, static, assets, img, mail, shop, m, blog. Tên từ Certificate Transparency được thêm cho đến khi chạm giới hạn quét.</li>
                     <li data-en="Rate limited. The contact form is a prototype and sends nothing.">Có giới hạn tần suất. Form liên hệ là bản thử và không gửi đi đâu.</li>
                   </ol>

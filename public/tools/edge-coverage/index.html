@@ -6,8 +6,8 @@
     <title data-en="Edge coverage check · Orange Cloud">Kiểm tra phủ edge · Orange Cloud</title>
     <meta
       name="description"
-      content="Quét subdomain, phân biệt Full DNS và Partial (CNAME) trên Cloudflare, và gọi tên CDN cùng nhà cung cấp của IP còn lại. Dự án cá nhân, không phải ấn phẩm của Cloudflare, Inc. và không liên kết với Cloudflare, Inc."
-      data-en="Scan subdomains, tell Full DNS from Partial (CNAME) setup on Cloudflare, and name the CDN plus the provider behind any other IP. A personal project, not a publication of Cloudflare, Inc., and not affiliated with Cloudflare, Inc."
+      content="Tra bản ghi DNS, đối chiếu nhiều resolver, quét subdomain và nhận CDN trên trang cùng nhà cung cấp của IP. Dự án cá nhân, không phải ấn phẩm của Cloudflare, Inc. và không liên kết với Cloudflare, Inc."
+      data-en="Look up DNS records, compare resolvers, scan subdomains, and name the CDN on the page plus the provider behind each IP. A personal project, not a publication of Cloudflare, Inc., and not affiliated with Cloudflare, Inc."
     />
     <meta name="theme-color" content="#100e0c" id="theme-color" />
     <meta property="og:title" content="Kiểm tra phủ edge · Orange Cloud" data-en="Edge coverage check · Orange Cloud" />
@@ -83,17 +83,17 @@
   <body class="ecc">
     <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
     <header class="nav">
-      <a class="brand" href="/">
+      <a class="brand" href="https://orangecloud.vn/">
         <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
         <span>Orange Cloud</span>
       </a>
       <nav id="site-nav" class="nav-links" aria-label="Trang" data-en-aria="Pages">
-        <a href="/#projects" data-en="Projects">Dự án</a>
-        <a href="/about/" data-en="About">Giới thiệu</a>
-        <a href="/#brand" data-en="Brand">Nhận diện</a>
-        <a href="/#platform" data-en="Platform">Nền tảng</a>
-        <a href="/#timeline" data-en="Timeline">Mốc</a>
-        <a href="/#legal" data-en="Legal">Pháp lý</a>
+        <a href="https://orangecloud.vn/#projects" data-en="Projects">Dự án</a>
+        <a href="https://orangecloud.vn/about/" data-en="About">Giới thiệu</a>
+        <a href="https://orangecloud.vn/#brand" data-en="Brand">Nhận diện</a>
+        <a href="https://orangecloud.vn/#platform" data-en="Platform">Nền tảng</a>
+        <a href="https://orangecloud.vn/#timeline" data-en="Timeline">Mốc</a>
+        <a href="https://orangecloud.vn/#legal" data-en="Legal">Pháp lý</a>
         <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
       </nav>
       <div class="nav-tools">
@@ -129,8 +129,11 @@
         <div class="wrap">
           <p class="eyebrow">Personal project · tool</p>
           <h1 class="page-title" data-en="Edge coverage check">Kiểm tra phủ edge</h1>
-          <p class="lede" data-en="Scan the subdomains a domain publishes, tell Full DNS from Partial (CNAME) setup on Cloudflare, and name the CDN plus the provider behind any other IP.">
-            Quét subdomain tên miền đang công bố, phân biệt Full DNS với Partial (CNAME) trên Cloudflare, và gọi tên CDN cùng nhà cung cấp của IP còn lại.
+          <p class="lede" data-en="Look up DNS records and compare public resolvers, then scan subdomains and name the CDN used by the page and by each hostname.">
+            Tra bản ghi DNS và đối chiếu resolver công khai, rồi quét subdomain và gọi tên CDN của trang cùng từng hostname.
+          </p>
+          <p class="note" data-en="Short address: lookup.orangecloud.vn. The canonical page stays on orangecloud.vn.">
+            Địa chỉ ngắn: lookup.orangecloud.vn. Trang chính vẫn nằm trên orangecloud.vn.
           </p>
           <p class="notice" data-en="A personal project. This is not a publication of Cloudflare, Inc. Not affiliated with Cloudflare, Inc.">
             Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc.
@@ -146,7 +149,7 @@
                 inputmode="url"
                 autocomplete="off"
                 spellcheck="false"
-                maxlength="253"
+                maxlength="300"
                 required
                 placeholder="vidu.com"
                 data-en-placeholder="example.com"
@@ -154,8 +157,8 @@
               <button class="btn btn-solid" id="ecc-submit" type="submit" data-en="Check">Kiểm tra</button>
             </div>
           </form>
-          <p class="note" data-en="Informational estimate from public DNS, Certificate Transparency, HTTP headers, and IP-to-ASN. CDN detection uses the same signals as CDN Finder: CNAME, headers, and ASN. Each check covers the common hostnames plus up to 40 names, 16 HTTP probes, and 24 non-Cloudflare IPs. Not an official Cloudflare report.">
-            Ước lượng mang tính thông tin, từ DNS công khai, Certificate Transparency, header HTTP và ASN. CDN được nhận bằng CNAME, header và ASN — cùng cách CDN Finder. Mỗi lần kiểm tra gồm hostname phổ biến và tối đa 40 tên, 16 lần đo HTTP, 24 IP ngoài Cloudflare. Không phải báo cáo chính thức của Cloudflare.
+          <p class="note" data-en="One check covers a DNS record view (A, AAAA, CNAME, NS, MX, TXT, SOA, CAA, HTTPS, DS), the same A record at several public resolvers, Certificate Transparency names, and the CDN behind resources linked in the page HTML. CDN detection uses CNAME, headers and ASN. Not an official Cloudflare or CDN Planet report.">
+            Một lần kiểm tra gồm bản ghi DNS (A, AAAA, CNAME, NS, MX, TXT, SOA, CAA, HTTPS, DS), cùng bản ghi A trên nhiều resolver công khai, tên từ Certificate Transparency, và CDN của tài nguyên gắn trong HTML. CDN được nhận bằng CNAME, header và ASN. Không phải báo cáo của Cloudflare hay CDN Planet.
           </p>
           <p id="ecc-alert" class="ecc-alert" role="alert" hidden></p>
           <div id="ecc-results" class="ecc-results" aria-live="polite"></div>
@@ -199,9 +202,9 @@
           Dự án cá nhân. Đây không phải ấn phẩm của Cloudflare, Inc. Không liên kết với Cloudflare, Inc.
         </p>
         <nav class="legal-links" aria-label="Chân trang" data-en-aria="Footer">
-          <a href="/" data-en="Home">Trang chủ</a>
-          <a href="/#projects" data-en="Projects">Dự án</a>
-          <a href="/#legal" data-en="Legal notice">Tuyên bố pháp lý</a>
+          <a href="https://orangecloud.vn/" data-en="Home">Trang chủ</a>
+          <a href="https://orangecloud.vn/#projects" data-en="Projects">Dự án</a>
+          <a href="https://orangecloud.vn/#legal" data-en="Legal notice">Tuyên bố pháp lý</a>
           <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog</a>
           <a class="ext" href="https://github.com/sycu8" target="_blank" rel="me noopener noreferrer">GitHub</a>
         </nav>

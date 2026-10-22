@@ -46,6 +46,22 @@ const COPY = {
     scanCommon: (scanned) => `Không lấy được Certificate Transparency. Đã kiểm tra ${scanned} hostname phổ biến`,
     truncated: " Danh sách bị cắt để vừa giới hạn truy vấn.",
     nsLabel: "NS",
+    dnsTitle: "Bản ghi DNS",
+    dnsNote: "A, AAAA, CNAME, NS, MX, TXT, SOA, CAA, HTTPS và DS. TTL là số giây còn trong cache của resolver.",
+    dnsColumns: ["Loại", "TTL", "Giá trị"],
+    dnsEmpty: "Không thấy bản ghi cho các loại đã hỏi.",
+    dnssec: { signed: "DNSSEC: đã ký (có bản ghi DS)", unsigned: "DNSSEC: chưa thấy DS", unknown: "DNSSEC: chưa đọc được" },
+    ptrTitle: "Reverse DNS",
+    propTitle: "Đối chiếu resolver",
+    propNote: "Cùng bản ghi A, hỏi nhiều máy chủ DNS công khai. Khớp nghĩa là cùng tập địa chỉ với Cloudflare.",
+    propColumns: ["Resolver", "Khu vực", "Bản ghi A", "So với Cloudflare"],
+    propState: { match: "Khớp", differ: "Khác", empty: "Không có", error: "Lỗi" },
+    pageTitle: "CDN trên trang",
+    pageNote: "Đọc HTML của trang, lấy tài nguyên gắn trực tiếp (ảnh, CSS, JS, font, media, iframe) rồi nhận CDN bằng CNAME, header và ASN. Tài nguyên do JavaScript chèn thêm không nằm trong danh sách này.",
+    pageColumns: ["Host", "Tài nguyên", "Số lượng", "CDN"],
+    pageEmpty: "Không đọc được HTML hoặc trang không gắn tài nguyên ngoài.",
+    pageTruncated: " Danh sách host trên trang bị cắt.",
+    edgeTitle: "Phủ edge",
   },
   en: {
     loading: "Checking…",
@@ -83,6 +99,22 @@ const COPY = {
     scanCommon: (scanned) => `Certificate Transparency was unavailable. Checked ${scanned} common hostnames`,
     truncated: " The list was cut to stay within the query cap.",
     nsLabel: "NS",
+    dnsTitle: "DNS records",
+    dnsNote: "A, AAAA, CNAME, NS, MX, TXT, SOA, CAA, HTTPS and DS. TTL is the remaining cache lifetime at that resolver, in seconds.",
+    dnsColumns: ["Type", "TTL", "Value"],
+    dnsEmpty: "No records for the types that were queried.",
+    dnssec: { signed: "DNSSEC: signed (DS present)", unsigned: "DNSSEC: no DS record", unknown: "DNSSEC: could not be read" },
+    ptrTitle: "Reverse DNS",
+    propTitle: "Resolver comparison",
+    propNote: "The same A record, asked of several public DNS servers. Match means the same address set as Cloudflare.",
+    propColumns: ["Resolver", "Region", "A record", "Compared with Cloudflare"],
+    propState: { match: "Match", differ: "Different", empty: "None", error: "Error" },
+    pageTitle: "CDN on the page",
+    pageNote: "Reads the page HTML, collects resources linked directly (images, CSS, JS, fonts, media, iframes) and names the CDN from CNAME, headers and ASN. Resources injected by JavaScript are not in this list.",
+    pageColumns: ["Host", "Resources", "Count", "CDN"],
+    pageEmpty: "The HTML could not be read, or the page links no external resources.",
+    pageTruncated: " The on-page host list was cut.",
+    edgeTitle: "Edge coverage",
   },
 };
 
@@ -165,6 +197,103 @@ function renderFacts(report, text) {
   return box;
 }
 
+function section(title, note) {
+  const block = el("section", "ecc-section");
+  block.append(el("h2", "ecc-section-title", title));
+  if (note) block.append(el("p", "note", note));
+  return block;
+}
+
+function simpleTable(columns, rows) {
+  const table = document.createElement("table");
+  table.className = "ecc-table";
+  const head = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  columns.forEach((label) => headRow.append(el("th", "", label)));
+  head.append(headRow);
+  const body = document.createElement("tbody");
+  rows.forEach((values) => {
+    const row = document.createElement("tr");
+    values.forEach((value, index) => {
+      const cell = el("td", index === 0 ? "ecc-host" : "ecc-dns", value);
+      cell.setAttribute("data-label", columns[index] || "");
+      row.append(cell);
+    });
+    body.append(row);
+  });
+  table.append(body);
+  return table;
+}
+
+function renderDns(report, text) {
+  const dns = report.dns;
+  if (!dns) return;
+  const block = section(text.dnsTitle, text.dnsNote);
+  block.append(el("p", "ecc-summary", text.dnssec[dns.dnssec] || text.dnssec.unknown));
+  if (dns.rows?.length) {
+    block.append(
+      simpleTable(
+        text.dnsColumns,
+        dns.rows.map((row) => [row.type, row.ttl == null ? "—" : String(row.ttl), row.value]),
+      ),
+    );
+  } else {
+    block.append(el("p", "", text.dnsEmpty));
+  }
+  if (dns.ptr?.length) {
+    block.append(el("h3", "ecc-section-title", text.ptrTitle));
+    block.append(
+      simpleTable(
+        ["IP", "PTR"],
+        dns.ptr.map((item) => [item.ip, item.names?.length ? item.names.join(", ") : "—"]),
+      ),
+    );
+  }
+  resultsRoot.append(block);
+}
+
+function renderPropagation(report, text) {
+  const rows = report.dns?.propagation;
+  if (!rows?.length) return;
+  const block = section(text.propTitle, text.propNote);
+  block.append(
+    simpleTable(
+      text.propColumns,
+      rows.map((row) => [
+        row.name,
+        language() === "en" ? row.placeEn || row.place : row.place,
+        row.values?.length ? row.values.join(", ") : "—",
+        text.propState[row.state] || row.state,
+      ]),
+    ),
+  );
+  resultsRoot.append(block);
+}
+
+function renderPageCdn(report, text) {
+  const page = report.page;
+  if (!page) return;
+  const block = section(text.pageTitle, text.pageNote);
+  const cdnLine = page.cdns?.length ? page.cdns.join(", ") : text.cdnEmpty;
+  let statusLine = page.fetched ? `${page.url} · HTTP ${page.status ?? "—"} · ${cdnLine}` : text.pageEmpty;
+  if (page.truncated) statusLine += text.pageTruncated;
+  block.append(el("p", "ecc-summary", statusLine));
+  if (page.resources?.length) {
+    block.append(
+      simpleTable(
+        text.pageColumns,
+        page.resources.map((resource) => [
+          resource.host,
+          (resource.kinds || []).join(", "),
+          String(resource.count ?? 0),
+          resource.provider || text.status[resource.status] || "—",
+        ]),
+      ),
+    );
+  }
+  resultsRoot.append(block);
+}
+
 function renderReport(report) {
   if (!resultsRoot) return;
   const text = copy();
@@ -173,7 +302,10 @@ function renderReport(report) {
 
   resultsRoot.append(el("p", "ecc-summary", text.summary(report.summary)));
   if (report.setup || report.discovery) resultsRoot.append(renderFacts(report, text));
+  renderDns(report, text);
+  renderPropagation(report, text);
 
+  resultsRoot.append(el("h2", "ecc-section-title", text.edgeTitle));
   const table = document.createElement("table");
   table.className = "ecc-table";
   const head = document.createElement("thead");
@@ -210,6 +342,7 @@ function renderReport(report) {
   });
   table.append(body);
   resultsRoot.append(table);
+  renderPageCdn(report, text);
 
   if (report.recommendations?.length) {
     const list = document.createElement("ul");
