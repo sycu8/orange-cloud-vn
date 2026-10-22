@@ -213,11 +213,11 @@ test("legacy and canonical redirects match the apex map", () => {
   assert.equal(lookupHostRedirect(new URL("https://orangecloud.vn/")), undefined);
   assert.equal(
     lookupAssetPath(new URL("https://lookup.orangecloud.vn/")),
-    "/tools/edge-coverage/index.html",
+    "/tools/edge-coverage/",
   );
   assert.equal(
     lookupAssetPath(new URL("https://lookup.orangecloud.vn/index.html")),
-    "/tools/edge-coverage/index.html",
+    "/tools/edge-coverage/",
   );
   assert.equal(lookupAssetPath(new URL("https://lookup.orangecloud.vn/about/")), undefined);
   assert.equal(lookupAssetPath(new URL("https://orangecloud.vn/")), undefined);

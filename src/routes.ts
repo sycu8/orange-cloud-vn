@@ -3,7 +3,7 @@ const APEX = "https://orangecloud.vn";
 /** Dedicated hostname for the edge checker. The apex page stays the canonical URL. */
 export const LOOKUP_HOST = "lookup.orangecloud.vn";
 const LOOKUP_ORIGIN = `https://${LOOKUP_HOST}`;
-const TOOL_ASSET = "/tools/edge-coverage/index.html";
+const TOOL_ASSET = "/tools/edge-coverage/";
 
 /** HTML documents that are real pages. Any other extensionless HTML 200 is a soft 404. */
 const INDEXABLE_HTML = new Set([
@@ -84,7 +84,11 @@ export function lookupHostRedirect(url: URL): string | undefined {
   return `${APEX}${url.pathname}${url.search}`;
 }
 
-/** Asset path to fetch when the lookup host should render the checker. */
+/**
+ * Asset path to fetch when the lookup host should render the checker.
+ * The directory URL is required. Asking assets for index.html makes them
+ * redirect back to /tools/edge-coverage/, which this host then sends to /.
+ */
 export function lookupAssetPath(url: URL): string | undefined {
   if (!isLookupHost(url.hostname)) return undefined;
   const path = normalizePath(url.pathname);
