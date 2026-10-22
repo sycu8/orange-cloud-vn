@@ -2,7 +2,10 @@ import { handleEdgeCheck, handleEdgeContact } from "./edge-check.ts";
 import {
   apexHostRedirect,
   canonicalRedirect,
+  isLookupHost,
   legacyRedirect,
+  lookupAssetPath,
+  lookupHostRedirect,
   shouldServeNotFound,
 } from "./routes.ts";
 import {
@@ -168,10 +171,15 @@ export default {
       if (method === "GET" || method === "HEAD") {
         const hostTarget = apexHostRedirect(url);
         if (hostTarget) return redirect(hostTarget, secure);
-        const canonicalTarget = canonicalRedirect(url.pathname, url.search);
-        if (canonicalTarget) return redirect(canonicalTarget, secure);
-        const legacyTarget = legacyRedirect(url.pathname, url.search);
-        if (legacyTarget) return redirect(legacyTarget, secure);
+        if (isLookupHost(url.hostname)) {
+          const lookupTarget = lookupHostRedirect(url);
+          if (lookupTarget) return redirect(lookupTarget, secure);
+        } else {
+          const canonicalTarget = canonicalRedirect(url.pathname, url.search);
+          if (canonicalTarget) return redirect(canonicalTarget, secure);
+          const legacyTarget = legacyRedirect(url.pathname, url.search);
+          if (legacyTarget) return redirect(legacyTarget, secure);
+        }
       }
 
       if (url.pathname === "/api/health") {
@@ -250,7 +258,14 @@ export default {
         return methodNotAllowed("GET, HEAD", secure);
       }
 
-      let response = await env.ASSETS.fetch(request);
+      const toolAsset = lookupAssetPath(url);
+      let assetRequest: Request = request;
+      if (toolAsset) {
+        const assetUrl = new URL(request.url);
+        assetUrl.pathname = toolAsset;
+        assetRequest = new Request(assetUrl, request);
+      }
+      let response = await env.ASSETS.fetch(assetRequest);
       if (
         shouldServeNotFound(
           url.pathname,
@@ -271,7 +286,17 @@ export default {
         });
       }
 
-      return withSecurity(response, secure);
+      const secured = withSecurity(response, secure);
+      if (!isLookupHost(url.hostname)) return secured;
+      const type = secured.headers.get("content-type") ?? "";
+      if (!type.toLowerCase().includes("text/html")) return secured;
+      const headers = new Headers(secured.headers);
+      headers.set("x-robots-tag", "noindex");
+      return new Response(secured.body, {
+        status: secured.status,
+        statusText: secured.statusText,
+        headers,
+      });
     } catch (error) {
       console.error(
         JSON.stringify({

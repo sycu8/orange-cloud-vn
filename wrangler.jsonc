@@ -26,6 +26,13 @@
       "preview_id": "1c91e5596bf249ba9c86588e8a8aee8c"
     }
   ],
+  // Deploy replaces this Worker's custom domains with this list. Keep the apex.
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    { "pattern": "orangecloud.vn", "custom_domain": true },
+    { "pattern": "lookup.orangecloud.vn", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",

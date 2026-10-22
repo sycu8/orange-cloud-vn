@@ -6,6 +6,8 @@ import {
   apexHostRedirect,
   canonicalRedirect,
   legacyRedirect,
+  lookupAssetPath,
+  lookupHostRedirect,
   shouldServeNotFound,
 } from "../src/routes.ts";
 
@@ -196,6 +198,29 @@ test("legacy and canonical redirects match the apex map", () => {
     apexHostRedirect(new URL("https://www.orangecloud.vn/about/?x=1")),
     "https://orangecloud.vn/about/?x=1",
   );
+  assert.equal(lookupHostRedirect(new URL("https://lookup.orangecloud.vn/")), undefined);
+  assert.equal(lookupHostRedirect(new URL("https://lookup.orangecloud.vn/index.html")), undefined);
+  assert.equal(
+    lookupHostRedirect(new URL("https://lookup.orangecloud.vn/tools/edge-coverage/?domain=vidu.com")),
+    "https://lookup.orangecloud.vn/?domain=vidu.com",
+  );
+  assert.equal(
+    lookupHostRedirect(new URL("https://lookup.orangecloud.vn/about/")),
+    "https://orangecloud.vn/about/",
+  );
+  assert.equal(lookupHostRedirect(new URL("https://lookup.orangecloud.vn/edge-check.js")), undefined);
+  assert.equal(lookupHostRedirect(new URL("https://lookup.orangecloud.vn/api/edge-check")), undefined);
+  assert.equal(lookupHostRedirect(new URL("https://orangecloud.vn/")), undefined);
+  assert.equal(
+    lookupAssetPath(new URL("https://lookup.orangecloud.vn/")),
+    "/tools/edge-coverage/index.html",
+  );
+  assert.equal(
+    lookupAssetPath(new URL("https://lookup.orangecloud.vn/index.html")),
+    "/tools/edge-coverage/index.html",
+  );
+  assert.equal(lookupAssetPath(new URL("https://lookup.orangecloud.vn/about/")), undefined);
+  assert.equal(lookupAssetPath(new URL("https://orangecloud.vn/")), undefined);
   assert.equal(shouldServeNotFound("/nope", 200, "text/html"), true);
   assert.equal(shouldServeNotFound("/about/", 200, "text/html; charset=utf-8"), false);
   assert.equal(shouldServeNotFound("/status/", 200, "text/html; charset=utf-8"), false);
@@ -209,6 +234,9 @@ function assetEnv(softHtml) {
     ["/", "<!doctype html><title>home</title>"],
     ["/index.html", "<!doctype html><title>home</title>"],
     ["/about/index.html", "<!doctype html><title>about</title>"],
+    ["/tools/edge-coverage/index.html", "<!doctype html><title>edge</title>"],
+    ["/edge-check.js", "check();"],
+    ["/styles.css", "body{}"],
     ["/status/index.html", "<!doctype html><title>status</title>"],
     ["/404.html", "<!doctype html><title>missing</title>"],
     ["/llms.txt", "# Orange Cloud\n"],
@@ -278,6 +306,31 @@ test("unknown paths return a real 404 and canonical aliases redirect", async () 
   const statusRedirect = await worker.fetch(new Request("https://orangecloud.vn/status"), env);
   assert.equal(statusRedirect.status, 301);
   assert.equal(statusRedirect.headers.get("location"), "https://orangecloud.vn/status/");
+
+  const lookupHome = await worker.fetch(new Request("https://lookup.orangecloud.vn/"), env);
+  assert.equal(lookupHome.status, 200);
+  assert.match(await lookupHome.text(), /edge/);
+  assert.equal(lookupHome.headers.get("x-robots-tag"), "noindex");
+
+  const lookupIndex = await worker.fetch(new Request("https://lookup.orangecloud.vn/index.html"), env);
+  assert.equal(lookupIndex.status, 200);
+  assert.match(await lookupIndex.text(), /edge/);
+
+  const lookupTool = await worker.fetch(
+    new Request("https://lookup.orangecloud.vn/tools/edge-coverage/?domain=vidu.com"),
+    env,
+  );
+  assert.equal(lookupTool.status, 301);
+  assert.equal(lookupTool.headers.get("location"), "https://lookup.orangecloud.vn/?domain=vidu.com");
+
+  const lookupAbout = await worker.fetch(new Request("https://lookup.orangecloud.vn/about/"), env);
+  assert.equal(lookupAbout.status, 301);
+  assert.equal(lookupAbout.headers.get("location"), "https://orangecloud.vn/about/");
+
+  const lookupScript = await worker.fetch(new Request("https://lookup.orangecloud.vn/edge-check.js"), env);
+  assert.equal(lookupScript.status, 200);
+  assert.match(await lookupScript.text(), /check\(\)/);
+  assert.equal(lookupScript.headers.get("x-robots-tag"), null);
 
   const www = await worker.fetch(new Request("https://www.orangecloud.vn/about/?x=1"), env);
   assert.equal(www.status, 301);

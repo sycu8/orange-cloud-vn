@@ -1,5 +1,10 @@
 const APEX = "https://orangecloud.vn";
 
+/** Dedicated hostname for the edge checker. The apex page stays the canonical URL. */
+export const LOOKUP_HOST = "lookup.orangecloud.vn";
+const LOOKUP_ORIGIN = `https://${LOOKUP_HOST}`;
+const TOOL_ASSET = "/tools/edge-coverage/index.html";
+
 /** HTML documents that are real pages. Any other extensionless HTML 200 is a soft 404. */
 const INDEXABLE_HTML = new Set([
   "/",
@@ -52,6 +57,39 @@ export function normalizePath(pathname: string): string {
 export function apexHostRedirect(url: URL): string | undefined {
   if (url.hostname.toLowerCase() !== "www.orangecloud.vn") return undefined;
   return `${APEX}${url.pathname}${url.search}`;
+}
+
+export function isLookupHost(hostname: string): boolean {
+  return hostname.toLowerCase() === LOOKUP_HOST;
+}
+
+function isStaticAsset(pathname: string): boolean {
+  const leaf = pathname.slice(pathname.lastIndexOf("/") + 1);
+  return leaf.includes(".");
+}
+
+/**
+ * lookup.orangecloud.vn opens the edge checker at `/`.
+ * The apex tool path on this host folds back to that root.
+ * Other pages go to the apex. Files the page loads stay here.
+ */
+export function lookupHostRedirect(url: URL): string | undefined {
+  if (!isLookupHost(url.hostname)) return undefined;
+  const path = normalizePath(url.pathname);
+  if (path === "/" || path === "/index.html") return undefined;
+  if (path === "/tools/edge-coverage" || path === "/tools/edge-coverage/index.html") {
+    return `${LOOKUP_ORIGIN}/${url.search}`;
+  }
+  if (path.startsWith("/api/") || isStaticAsset(path)) return undefined;
+  return `${APEX}${url.pathname}${url.search}`;
+}
+
+/** Asset path to fetch when the lookup host should render the checker. */
+export function lookupAssetPath(url: URL): string | undefined {
+  if (!isLookupHost(url.hostname)) return undefined;
+  const path = normalizePath(url.pathname);
+  if (path === "/" || path === "/index.html") return TOOL_ASSET;
+  return undefined;
 }
 
 export function canonicalRedirect(pathname: string, search: string): string | undefined {
