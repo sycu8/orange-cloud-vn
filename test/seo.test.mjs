@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { extname, join } from "node:path";
 import test from "node:test";
 import worker from "../src/index.ts";
 import { PERSON_SAME_AS, PROJECT_PAGES } from "../src/project-catalog.ts";
@@ -214,16 +215,61 @@ test("llms.txt, robots.txt, and favicon follow the apex audit", () => {
   assert.match(robots, /Content-Signal: ai-train=no, search=yes, ai-input=yes/);
   assert.match(robots, /Sitemap: https:\/\/orangecloud\.vn\/sitemap\.xml/);
   assert.match(robots, /Sitemap: https:\/\/blog\.orangecloud\.vn\/sitemap\.xml/);
-  assert.match(robots, /Sitemap: https:\/\/onboarding\.orangecloud\.vn\/sitemap-index\.xml/);
+  const onboarding = PROJECT_PAGES.find((page) => page.slug === "onboarding");
+  const onboardingOrigin = new URL(onboarding.links[0].href).origin;
+  assert.match(robots, new RegExp(`Sitemap: ${onboardingOrigin}/sitemap\\.xml`));
+  assert.doesNotMatch(robots, new RegExp(`Sitemap: ${onboardingOrigin}/sitemap-index\\.xml`));
   assert.match(robots, /Sitemap: https:\/\/firetrace\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/home\.orangecloud\.vn\/sitemap\.xml/);
   assert.match(robots, /Sitemap: https:\/\/reputation\.orangecloud\.vn\/sitemap\.xml/);
   assert.match(robots, /Sitemap: https:\/\/stocknews\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/ready\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/launch\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/bhxh\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/wcstat\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/poker\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/sycule\.orangecloud\.vn\/sitemap\.xml/);
   assert.doesNotMatch(robots, /Sitemap: https:\/\/pregnancymeal\.tips\/sitemap\.xml/);
   assert.doesNotMatch(robots, /Sitemap: https:\/\/lookup\.orangecloud\.vn\/sitemap\.xml/);
-  assert.doesNotMatch(robots, /Sitemap: https:\/\/home\.orangecloud\.vn\/sitemap\.xml/);
   assert.doesNotMatch(robots, /Sitemap: https:\/\/hrm\.orangecloud\.vn\/sitemap\.xml/);
   assert.equal(favicon.subarray(0, 4).toString("hex"), "00000100");
   assert.ok(favicon.includes(Buffer.from("PNG")));
+});
+
+test("VivaAge links to vivaage.orangecloud.vn and the retired workers.dev host is gone", () => {
+  const viva = PROJECT_PAGES.find((page) => page.slug === "vivaage");
+  assert.equal(viva.links[0].href, "https://vivaage.orangecloud.vn/");
+  const page = readFileSync(new URL("../public/projects/vivaage/index.html", import.meta.url), "utf8");
+  assert.match(page, /href="https:\/\/vivaage\.orangecloud\.vn\/"/);
+  assert.match(home, /id="viva"[\s\S]*?href="https:\/\/vivaage\.orangecloud\.vn"/);
+  assert.match(llms, /\[VivaAge\]\(https:\/\/vivaage\.orangecloud\.vn\/\)/);
+  const website = graphNodes(home).find((node) => typeNames(node).includes("WebSite") && node.hasPart);
+  const part = website.hasPart.find((item) => item.name === "VivaAge");
+  assert.equal(part.url, "https://vivaage.orangecloud.vn/");
+  for (const block of [...jsonLd(home), ...jsonLd(page)]) {
+    assert.equal(JSON.stringify(block).includes("song-an-40"), false);
+  }
+
+  const retiredHost = ["song-an-40", "sycu-lee.workers.dev"].join(".");
+  const root = new URL("..", import.meta.url).pathname;
+  const skipDir = new Set([".git", "node_modules"]);
+  const skipExt = new Set([".png", ".ico", ".woff", ".woff2", ".jpg", ".jpeg", ".webp", ".gif"]);
+  const files = [];
+  const walk = (dir) => {
+    for (const name of readdirSync(dir)) {
+      if (skipDir.has(name)) continue;
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) walk(path);
+      else if (!skipExt.has(extname(name))) files.push(path);
+    }
+  };
+  walk(root);
+  assert.ok(files.length > 10);
+  for (const file of files) {
+    const bytes = readFileSync(file);
+    if (bytes.includes(0)) continue;
+    assert.equal(bytes.toString("utf8").includes(retiredHost), false, file);
+  }
 });
 
 test("legacy and canonical redirects match the apex map", () => {

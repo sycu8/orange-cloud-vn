@@ -272,14 +272,14 @@ export const PROJECT_PAGES: readonly ProjectPage[] = [
     ledeVi: "Hỗ trợ người Việt từ 40 tuổi chuẩn bị sức khỏe, tài chính và kỹ năng chăm sóc.",
     ledeEn: "Helps Vietnamese adults from age 40 prepare for health, money, and care skills.",
     bodyVi:
-      "Có bài đánh giá mức sẵn sàng, kế hoạch 30 ngày, thư viện và chatbot trả lời có nguồn. Demo đang chạy tại song-an-40.sycu-lee.workers.dev.",
+      "Có bài đánh giá mức sẵn sàng, kế hoạch 30 ngày, thư viện và chatbot trả lời có nguồn. Trang đang chạy tại vivaage.orangecloud.vn.",
     bodyEn:
-      "Includes a readiness check, a 30-day plan, a library, and a sourced chatbot. The demo runs at song-an-40.sycu-lee.workers.dev.",
+      "Includes a readiness check, a 30-day plan, a library, and a sourced chatbot. The site runs at vivaage.orangecloud.vn.",
     noteVi: "Công cụ giáo dục. Không phải ứng dụng nhà nước, không thay bác sĩ hay tư vấn tài chính.",
     noteEn: "An education tool. Not a government app and not a substitute for a doctor or financial advice.",
     github: "https://github.com/sycu8/live-long-40-",
     links: [
-      { href: "https://song-an-40.sycu-lee.workers.dev/", labelVi: "Mở demo", labelEn: "Open demo" },
+      { href: "https://vivaage.orangecloud.vn/", labelVi: "Mở demo", labelEn: "Open demo" },
     ],
   },
   {
