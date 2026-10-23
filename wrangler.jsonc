@@ -27,8 +27,9 @@
     }
   ],
   // Deploy replaces this Worker's custom domains with this list. Keep the apex.
-  "workers_dev": true,
-  "preview_urls": true,
+  // workers.dev and preview hosts are not canonical. HTML from any other host is also noindex.
+  "workers_dev": false,
+  "preview_urls": false,
   "routes": [
     { "pattern": "orangecloud.vn", "custom_domain": true },
     { "pattern": "lookup.orangecloud.vn", "custom_domain": true }
