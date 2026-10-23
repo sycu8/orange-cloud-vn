@@ -27,7 +27,7 @@
 - [Pregnancy Meal Planner](https://pregnancymeal.tips/): free 7-day Vietnamese pregnancy meal plan. Vietnamese edition: https://pregnancymeal.tips/vi
 - [Onboarding](https://onboarding.orangecloud.vn/): learning hub
 - [VN Market Daily](https://stocknews.orangecloud.vn/): Vietnam market news desk. Not investment advice.
-- [VivaAge demo](https://song-an-40.sycu-lee.workers.dev/): education tool for adults 40+. Not medical or financial advice.
+- [VivaAge](https://vivaage.orangecloud.vn/): education tool for adults 40+. Not medical or financial advice.
 
 ## Code
 - [GitHub @sycu8](https://github.com/sycu8)
