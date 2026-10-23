@@ -308,7 +308,7 @@ export const PROJECT_PAGES: readonly ProjectPage[] = [
     ledeVi: "Bản đồ điểm nhiệt vệ tinh tại Việt Nam.",
     ledeEn: "A map of satellite hotspots in Vietnam.",
     bodyVi:
-      "FireTrace hiện điểm nhiệt vệ tinh trên bản đồ Việt Nam, tại firetrace.orangecloud.vn. Trang hub này chỉ dẫn tới trang đang chạy.",
+      "FireTrace hiện điểm nhiệt vệ tinh trên bản đồ Việt Nam, tại firetrace.orangecloud.vn. Trang này chỉ liên kết tới bản đang chạy.",
     bodyEn:
       "FireTrace shows satellite hotspots on a map of Vietnam, at firetrace.orangecloud.vn. This page links the live site only.",
     noteVi: "Điểm nhiệt không phải đám cháy đã xác nhận.",

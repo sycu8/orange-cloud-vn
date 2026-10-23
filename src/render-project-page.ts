@@ -146,7 +146,7 @@ ${JSON.stringify(graph, null, 2).replace(/^/gm, "      ")}
     </script>
   </head>
   <body>
-    <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
+    <a class="skip" href="#content" data-en="Skip to content">Chuyển đến nội dung</a>
     <header class="nav">
       <a class="brand" href="/">
         <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />

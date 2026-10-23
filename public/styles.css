@@ -1565,6 +1565,14 @@ h3 {
 
 .missing-card {
   width: min(640px, 100%);
+  max-width: 100%;
+  container-type: inline-size;
+  overflow-x: clip;
+}
+
+.missing .wordmark {
+  font-size: clamp(2.2rem, 13cqi, 5.2rem);
+  text-align: center;
 }
 
 @media (max-width: 1100px) {

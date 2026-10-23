@@ -217,8 +217,9 @@ test("llms.txt, robots.txt, and favicon follow the apex audit", () => {
   assert.match(robots, /Sitemap: https:\/\/onboarding\.orangecloud\.vn\/sitemap-index\.xml/);
   assert.match(robots, /Sitemap: https:\/\/firetrace\.orangecloud\.vn\/sitemap\.xml/);
   assert.match(robots, /Sitemap: https:\/\/reputation\.orangecloud\.vn\/sitemap\.xml/);
-  assert.match(robots, /Sitemap: https:\/\/pregnancymeal\.tips\/sitemap\.xml/);
   assert.match(robots, /Sitemap: https:\/\/stocknews\.orangecloud\.vn\/sitemap\.xml/);
+  assert.doesNotMatch(robots, /Sitemap: https:\/\/pregnancymeal\.tips\/sitemap\.xml/);
+  assert.doesNotMatch(robots, /Sitemap: https:\/\/lookup\.orangecloud\.vn\/sitemap\.xml/);
   assert.doesNotMatch(robots, /Sitemap: https:\/\/home\.orangecloud\.vn\/sitemap\.xml/);
   assert.doesNotMatch(robots, /Sitemap: https:\/\/hrm\.orangecloud\.vn\/sitemap\.xml/);
   assert.equal(favicon.subarray(0, 4).toString("hex"), "00000100");
