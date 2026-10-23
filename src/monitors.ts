@@ -77,6 +77,34 @@ export const MONITORS: readonly Monitor[] = [
     url: "https://poker.orangecloud.vn/",
     projectId: "poker",
   },
+  {
+    id: "firetrace",
+    name: "FireTrace",
+    nameEn: "FireTrace",
+    url: "https://firetrace.orangecloud.vn/",
+    projectId: "firetrace",
+  },
+  {
+    id: "ancu",
+    name: "AnCư 3D",
+    nameEn: "AnCư 3D",
+    url: "https://home.orangecloud.vn/",
+    projectId: "ancu",
+  },
+  {
+    id: "meal",
+    name: "Pregnancy Meal",
+    nameEn: "Pregnancy Meal",
+    url: "https://pregnancymeal.tips/",
+    projectId: "meal",
+  },
+  {
+    id: "market",
+    name: "VN Market Daily",
+    nameEn: "VN Market Daily",
+    url: "https://stocknews.orangecloud.vn/",
+    projectId: "market",
+  },
 ] as const;
 
 export const SNAPSHOT_KEY = "status:snapshot";

@@ -287,7 +287,8 @@ export default {
       }
 
       const secured = withSecurity(response, secure);
-      if (!isLookupHost(url.hostname)) return secured;
+      // Apex is the only indexable host. lookup, workers.dev, and preview hosts stay noindex.
+      if (url.hostname.toLowerCase() === "orangecloud.vn") return secured;
       const type = secured.headers.get("content-type") ?? "";
       if (!type.toLowerCase().includes("text/html")) return secured;
       const headers = new Headers(secured.headers);

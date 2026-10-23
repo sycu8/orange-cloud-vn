@@ -22,6 +22,10 @@ test("monitor list covers the live orangecloud.vn hosts", () => {
     "reputation.orangecloud.vn",
     "wcstat.orangecloud.vn",
     "poker.orangecloud.vn",
+    "firetrace.orangecloud.vn",
+    "home.orangecloud.vn",
+    "pregnancymeal.tips",
+    "stocknews.orangecloud.vn",
   ]) {
     assert.ok(hosts.includes(host), `missing ${host}`);
   }

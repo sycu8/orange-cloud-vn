@@ -1,19 +1,150 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://orangecloud.vn/</loc>
-    <lastmod>2026-10-18</lastmod>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/" />
   </url>
   <url>
     <loc>https://orangecloud.vn/about/</loc>
-    <lastmod>2026-10-18</lastmod>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/about/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/about/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/about/" />
   </url>
   <url>
     <loc>https://orangecloud.vn/status/</loc>
-    <lastmod>2026-10-18</lastmod>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/status/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/status/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/status/" />
   </url>
   <url>
     <loc>https://orangecloud.vn/tools/edge-coverage/</loc>
-    <lastmod>2026-10-18</lastmod>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/tools/edge-coverage/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/tools/edge-coverage/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/tools/edge-coverage/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/edge-coverage/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/edge-coverage/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/edge-coverage/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/edge-coverage/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/onboarding/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/onboarding/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/onboarding/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/onboarding/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/cf-ready/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/cf-ready/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/cf-ready/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/cf-ready/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/case-helper/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/case-helper/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/case-helper/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/case-helper/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/one-man-company/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/one-man-company/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/one-man-company/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/one-man-company/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/oclaunch/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/oclaunch/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/oclaunch/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/oclaunch/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/hr-platform/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/hr-platform/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/hr-platform/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/hr-platform/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/bhxh/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/bhxh/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/bhxh/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/bhxh/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/pulsewatch/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/pulsewatch/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/pulsewatch/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/pulsewatch/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/pitchintel/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/pitchintel/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/pitchintel/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/pitchintel/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/poker-faces/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/poker-faces/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/poker-faces/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/poker-faces/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/vn-market/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/vn-market/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/vn-market/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/vn-market/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/pregnancy-meal/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/pregnancy-meal/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/pregnancy-meal/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/pregnancy-meal/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/vivaage/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/vivaage/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/vivaage/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/vivaage/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/insights/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/insights/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/insights/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/firetrace/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/firetrace/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/firetrace/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/firetrace/" />
+  </url>
+  <url>
+    <loc>https://orangecloud.vn/projects/ancu/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://orangecloud.vn/projects/ancu/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://orangecloud.vn/projects/ancu/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/projects/ancu/" />
   </url>
 </urlset>

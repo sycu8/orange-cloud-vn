@@ -237,7 +237,9 @@ onScroll();
 
 let initial = "vi";
 try {
-  initial = localStorage.getItem("oc-lang") === "en" ? "en" : "vi";
+  const requested = new URLSearchParams(window.location.search).get("lang");
+  if (requested === "en" || requested === "vi") initial = requested;
+  else initial = localStorage.getItem("oc-lang") === "en" ? "en" : "vi";
 } catch {
   initial = "vi";
 }

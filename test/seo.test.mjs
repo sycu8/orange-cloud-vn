@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import worker from "../src/index.ts";
+import { PERSON_SAME_AS, PROJECT_PAGES } from "../src/project-catalog.ts";
+import { renderProjectPage } from "../src/render-project-page.ts";
 import {
   apexHostRedirect,
   canonicalRedirect,
+  indexablePaths,
   legacyRedirect,
   lookupAssetPath,
   lookupHostRedirect,
@@ -30,6 +33,11 @@ function jsonLd(html) {
 
 function graphNodes(html) {
   return jsonLd(html).flatMap((block) => block["@graph"] ?? [block]);
+}
+
+function typeNames(node) {
+  const value = node["@type"];
+  return Array.isArray(value) ? value : [value];
 }
 
 function visibleHtml(html) {
@@ -63,6 +71,53 @@ function assertLeaves(html, label) {
   assert.equal(stack.length, 0, `${label}: unclosed tags`);
 }
 
+test("homepage declares vi and en hreflang and a bilingual FAQ", () => {
+  assert.match(home, /<link rel="alternate" hreflang="vi" href="https:\/\/orangecloud\.vn\/"\s*\/>/);
+  assert.match(home, /<link rel="alternate" hreflang="en" href="https:\/\/orangecloud\.vn\/"\s*\/>/);
+  assert.match(home, /<link rel="alternate" hreflang="x-default" href="https:\/\/orangecloud\.vn\/"\s*\/>/);
+  assert.match(about, /hreflang="vi"/);
+  assert.match(about, /hreflang="en"/);
+  assert.match(statusPage, /hreflang="en"/);
+  const faq = graphNodes(home).find((node) => typeNames(node).includes("FAQPage"));
+  assert.equal(faq["@id"], "https://orangecloud.vn/#faq");
+  const questions = faq.mainEntity.map((item) => item.name);
+  assert.ok(questions.includes("Orange Cloud là gì?"));
+  assert.ok(questions.includes("What is Orange Cloud?"));
+  assert.match(home, /id="faq"/);
+  assert.match(home, /https:\/\/orangecloud\.vn\//);
+  assert.match(home, /https:\/\/firetrace\.orangecloud\.vn\//);
+  assert.match(home, /https:\/\/home\.orangecloud\.vn\//);
+  assert.match(home, /https:\/\/pregnancymeal\.tips\//);
+  assert.match(home, /https:\/\/onboarding\.orangecloud\.vn/);
+  assert.match(home, /https:\/\/reputation\.orangecloud\.vn/);
+  assert.doesNotMatch(home, /wildfire-map/);
+  const firetrace = readFileSync(new URL("../public/projects/firetrace/index.html", import.meta.url), "utf8");
+  assert.doesNotMatch(firetrace, /wildfire-map|github\.com\/sycu8\/wildfire/);
+  assert.doesNotMatch(firetrace, /href="https:\/\/github\.com/);
+});
+
+test("each project has a hub page in the sitemap", () => {
+  const wrangler = readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8");
+  assert.match(wrangler, /"workers_dev": false/);
+  assert.match(wrangler, /"preview_urls": false/);
+  for (const page of PROJECT_PAGES) {
+    const path = `/projects/${page.slug}/`;
+    const html = readFileSync(new URL(`../public${path}index.html`, import.meta.url), "utf8");
+    assert.equal(html, renderProjectPage(page), page.slug);
+    assert.ok(sitemap.includes(`<loc>https://orangecloud.vn${path}</loc>`), path);
+    assert.ok(sitemap.includes(`hreflang="en" href="https://orangecloud.vn${path}"`), path);
+    assert.equal(shouldServeNotFound(path, 200, "text/html; charset=utf-8"), false);
+    assert.equal(canonicalRedirect(`/projects/${page.slug}`, ""), `https://orangecloud.vn${path}`);
+    assert.doesNotMatch(html, /wildfire-map|admin_sessions/);
+    assertLeaves(html, page.slug);
+    assert.ok(home.includes(`href="${path}"`), path);
+  }
+  for (const path of indexablePaths()) {
+    const loc = `https://orangecloud.vn${path === "/" ? "/" : path}`;
+    assert.ok(sitemap.includes(`<loc>${loc}</loc>`), loc);
+  }
+});
+
 test("canonical tags point at the final 200 URLs", () => {
   assert.match(home, /<link rel="canonical" href="https:\/\/orangecloud\.vn\/"\s*\/>/);
   assert.match(about, /<link rel="canonical" href="https:\/\/orangecloud\.vn\/about\/"\s*\/>/);
@@ -74,11 +129,12 @@ test("canonical tags point at the final 200 URLs", () => {
 test("person and website JSON-LD use stable ids and omit employment", () => {
   for (const html of [home, about]) {
     const nodes = graphNodes(html);
-    const person = nodes.find((node) => node["@type"] === "Person");
-    const website = nodes.find((node) => node["@type"] === "WebSite" && node["@id"]);
+    const person = nodes.find((node) => typeNames(node).includes("Person"));
+    const website = nodes.find((node) => typeNames(node).includes("WebSite") && node["@id"]);
+    assert.ok(typeNames(person).includes("Organization"));
     assert.equal(person["@id"], "https://orangecloud.vn/#person");
     assert.equal(person.name, "Cường Lê Sỹ");
-    assert.deepEqual(person.sameAs, ["https://github.com/sycu8"]);
+    assert.deepEqual(person.sameAs, [...PERSON_SAME_AS]);
     assert.equal(person.url, "https://orangecloud.vn/about/");
     assert.equal(website["@id"], "https://orangecloud.vn/#website");
     assert.equal(website.author["@id"], "https://orangecloud.vn/#person");
@@ -113,7 +169,8 @@ test("about page uses on-site facts and is listed in the sitemap", () => {
   assert.match(about, /https:\/\/buymeacoffee\.com\/sycule/);
   assert.match(about, /blog\.orangecloud\.vn/);
   assert.doesNotMatch(about, /hello@orangecloud\.vn/);
-  assert.doesNotMatch(about, /linkedin\.com/);
+  assert.match(about, /https:\/\/www\.linkedin\.com\/in\/sycule\//);
+  assert.doesNotMatch(about, /linkedin\.com\/company/);
   assert.match(sitemap, /<loc>https:\/\/orangecloud\.vn\/about\/<\/loc>/);
   assert.match(sitemap, /<loc>https:\/\/orangecloud\.vn\/status\/<\/loc>/);
   assert.match(sitemap, /<loc>https:\/\/orangecloud\.vn\/<\/loc>/);
@@ -157,6 +214,14 @@ test("llms.txt, robots.txt, and favicon follow the apex audit", () => {
   assert.match(robots, /Content-Signal: ai-train=no, search=yes, ai-input=yes/);
   assert.match(robots, /Sitemap: https:\/\/orangecloud\.vn\/sitemap\.xml/);
   assert.match(robots, /Sitemap: https:\/\/blog\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/onboarding\.orangecloud\.vn\/sitemap-index\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/firetrace\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/reputation\.orangecloud\.vn\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/stocknews\.orangecloud\.vn\/sitemap\.xml/);
+  assert.doesNotMatch(robots, /Sitemap: https:\/\/pregnancymeal\.tips\/sitemap\.xml/);
+  assert.doesNotMatch(robots, /Sitemap: https:\/\/lookup\.orangecloud\.vn\/sitemap\.xml/);
+  assert.doesNotMatch(robots, /Sitemap: https:\/\/home\.orangecloud\.vn\/sitemap\.xml/);
+  assert.doesNotMatch(robots, /Sitemap: https:\/\/hrm\.orangecloud\.vn\/sitemap\.xml/);
   assert.equal(favicon.subarray(0, 4).toString("hex"), "00000100");
   assert.ok(favicon.includes(Buffer.from("PNG")));
 });
@@ -353,6 +418,20 @@ test("unknown paths return a real 404 and canonical aliases redirect", async () 
   const llmsRes = await worker.fetch(new Request("https://orangecloud.vn/llms.txt"), env);
   assert.equal(llmsRes.status, 200);
   assert.match(await llmsRes.text(), /Orange Cloud/);
+
+  const workersDev = await worker.fetch(new Request("https://orange-cloud-vn.sycu-lee.workers.dev/"), env);
+  assert.equal(workersDev.status, 200);
+  assert.equal(workersDev.headers.get("x-robots-tag"), "noindex");
+
+  const preview = await worker.fetch(
+    new Request("https://abc.orange-cloud-vn.sycu-lee.workers.dev/about/"),
+    env,
+  );
+  assert.equal(preview.status, 200);
+  assert.equal(preview.headers.get("x-robots-tag"), "noindex");
+
+  const apexAbout = await worker.fetch(new Request("https://orangecloud.vn/about/"), env);
+  assert.equal(apexAbout.headers.get("x-robots-tag"), null);
 
   const og = await worker.fetch(new Request("https://orangecloud.vn/og.png?v=1"), env);
   assert.equal(og.status, 200);

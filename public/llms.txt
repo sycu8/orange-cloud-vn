@@ -17,6 +17,17 @@
 
 ## Tools
 - [CF Ready](https://ready.orangecloud.vn/): open-source Cloudflare go-live readiness CLI (`npx @orangecloud/cf-ready scan`)
+- [Edge coverage](https://orangecloud.vn/tools/edge-coverage/): DNS, resolver comparison, and on-page CDN notes. Short host: https://lookup.orangecloud.vn/
+
+## Projects
+- [Project index](https://orangecloud.vn/#projects): one hub page per project, under https://orangecloud.vn/projects/
+- [FireTrace](https://firetrace.orangecloud.vn/): satellite hotspot map for Vietnam. A hotspot is not a confirmed fire. Live site only.
+- [AnCư 3D](https://home.orangecloud.vn/): understand a home before calling it home
+- [PulseWatch](https://reputation.orangecloud.vn/): public mention monitoring
+- [Pregnancy Meal Planner](https://pregnancymeal.tips/): free 7-day Vietnamese pregnancy meal plan. Vietnamese edition: https://pregnancymeal.tips/vi
+- [Onboarding](https://onboarding.orangecloud.vn/): learning hub
+- [VN Market Daily](https://stocknews.orangecloud.vn/): Vietnam market news desk. Not investment advice.
+- [VivaAge demo](https://song-an-40.sycu-lee.workers.dev/): education tool for adults 40+. Not medical or financial advice.
 
 ## Code
 - [GitHub @sycu8](https://github.com/sycu8)

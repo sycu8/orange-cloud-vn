@@ -29,6 +29,9 @@
     <meta name="twitter:image" content="https://orangecloud.vn/og.png?v=1" />
     <meta name="twitter:image:alt" content="Orange Cloud — Showcase cá nhân trên Cloudflare Developer Platform. Không máy chủ tự vận hành." />
     <link rel="canonical" href="https://orangecloud.vn/about/" />
+    <link rel="alternate" hreflang="vi" href="https://orangecloud.vn/about/" />
+    <link rel="alternate" hreflang="en" href="https://orangecloud.vn/about/" />
+    <link rel="alternate" hreflang="x-default" href="https://orangecloud.vn/about/" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -45,12 +48,17 @@
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "Person",
+            "@type": ["Person", "Organization"],
             "@id": "https://orangecloud.vn/#person",
             "name": "Cường Lê Sỹ",
-            "alternateName": ["Cuong Le Sy", "Cuong Le", "Sycule"],
+            "alternateName": ["Cuong Le Sy", "Cuong Le", "Sycule", "Orange Cloud"],
             "url": "https://orangecloud.vn/about/",
-            "sameAs": ["https://github.com/sycu8"],
+            "sameAs": [
+              "https://github.com/sycu8",
+              "https://www.linkedin.com/in/sycule/",
+              "https://www.facebook.com/sycule/",
+              "https://buymeacoffee.com/sycule"
+            ],
             "knowsAbout": ["Cloudflare", "Cloudflare Workers", "Cloudflare Developer Platform", "DNS", "Zero Trust", "Web security"],
             "knowsLanguage": ["vi", "en"],
             "description": "Maintains Orange Cloud in a personal capacity. Orange Cloud is not a publication of Cloudflare, Inc. and is not affiliated with Cloudflare, Inc."
@@ -73,14 +81,14 @@
             "inLanguage": "vi",
             "isPartOf": { "@id": "https://orangecloud.vn/#website" },
             "mainEntity": { "@id": "https://orangecloud.vn/#person" },
-            "dateModified": "2026-10-18"
+            "dateModified": "2026-10-23"
           }
         ]
       }
     </script>
   </head>
   <body>
-    <a class="skip" href="#content" data-en="Skip to content">Bỏ qua, tới nội dung</a>
+    <a class="skip" href="#content" data-en="Skip to content">Chuyển đến nội dung</a>
     <header class="nav">
       <a class="brand" href="/">
         <img class="brand-mark" src="/brand/mark.svg" width="28" height="28" alt="" />
@@ -195,6 +203,27 @@
               <span data-en="Private play-money Texas Hold’em for friends.">Texas Hold’em chip ảo cho bàn riêng với bạn bè.</span>
               <a class="ext" href="https://poker.orangecloud.vn/" target="_blank" rel="noopener noreferrer">poker.orangecloud.vn<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
             </li>
+            <li>
+              <strong>FireTrace</strong>
+              <span data-en="A map of satellite hotspots in Vietnam. A hotspot is not a confirmed fire.">Bản đồ điểm nhiệt vệ tinh tại Việt Nam. Điểm nhiệt không phải đám cháy đã xác nhận.</span>
+              <a class="ext" href="https://firetrace.orangecloud.vn/" target="_blank" rel="noopener noreferrer">firetrace.orangecloud.vn<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+              <a href="/projects/firetrace/">/projects/firetrace</a>
+            </li>
+            <li>
+              <strong>AnCư 3D</strong>
+              <span data-en="Understand a home before you call it home.">Hiểu căn nhà trước khi gọi là nhà.</span>
+              <a class="ext" href="https://home.orangecloud.vn/" target="_blank" rel="noopener noreferrer">home.orangecloud.vn<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+            </li>
+            <li>
+              <strong>Pregnancy Meal Planner</strong>
+              <span data-en="A free 7-day Vietnamese pregnancy meal plan. For reference only. Not medical advice.">Thực đơn Việt 7 ngày cho thai kỳ. Chỉ để tham khảo. Không phải tư vấn y tế.</span>
+              <a class="ext" href="https://pregnancymeal.tips/" target="_blank" rel="noopener noreferrer">pregnancymeal.tips<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+            </li>
+            <li>
+              <strong>VN Market Daily</strong>
+              <span data-en="Vietnam market news. A reading desk, not investment advice.">Tin chứng khoán Việt Nam. Bàn đọc tin, không phải khuyến nghị đầu tư.</span>
+              <a class="ext" href="https://stocknews.orangecloud.vn/" target="_blank" rel="noopener noreferrer">stocknews.orangecloud.vn<span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+            </li>
           </ul>
           <p class="note" data-en="Lab repositories without a public orangecloud.vn host are listed on the homepage.">
             Repository thử nghiệm chưa có host orangecloud.vn công khai được liệt kê trên trang chủ.
@@ -216,6 +245,8 @@
           </p>
           <div class="actions">
             <a class="btn btn-solid ext" href="https://github.com/sycu8" target="_blank" rel="me noopener noreferrer">GitHub @sycu8 <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+            <a class="btn ext" href="https://www.linkedin.com/in/sycule/" target="_blank" rel="me noopener noreferrer">LinkedIn <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
+            <a class="btn ext" href="https://www.facebook.com/sycule/" target="_blank" rel="me noopener noreferrer">Facebook <span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
             <a class="btn ext" href="https://github.com/sycu8/orange-cloud-vn" target="_blank" rel="noopener noreferrer"><span data-en="Source">Mã nguồn</span><span class="sr-only" data-en="(opens in a new tab)">(mở tab mới)</span></a>
             <a class="btn" href="/#legal" data-en="Legal notice">Tuyên bố pháp lý</a>
           </div>
@@ -239,6 +270,14 @@
           <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog</a>
           <a class="ext" href="https://github.com/sycu8" target="_blank" rel="me noopener noreferrer">GitHub</a>
         </nav>
+          <p data-en="Sibling sites">Trang cùng studio</p>
+          <nav class="legal-links" aria-label="Trang cùng studio" data-en-aria="Sibling sites">
+            <a href="https://orangecloud.vn/">Orange Cloud</a>
+            <a class="ext" href="https://blog.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Blog</a>
+            <a class="ext" href="https://onboarding.orangecloud.vn/" target="_blank" rel="noopener noreferrer">Onboarding</a>
+            <a class="ext" href="https://firetrace.orangecloud.vn/" target="_blank" rel="noopener noreferrer">FireTrace</a>
+          </nav>
+
         <div class="signoff">
           <span>Cường Lê Sỹ · <span data-en="personal capacity">tư cách cá nhân</span></span>
           <time datetime="2026-10-18">18.10.2026</time>

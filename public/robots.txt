@@ -2,5 +2,18 @@ User-agent: *
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
 
+# Hub sitemap, then each orangecloud.vn host that publishes its own XML.
+# lookup.orangecloud.vn serves this same hub, so its sitemap is not listed again.
+# home.orangecloud.vn and hrm.orangecloud.vn currently return the app shell for /sitemap.xml, so they are omitted.
 Sitemap: https://orangecloud.vn/sitemap.xml
 Sitemap: https://blog.orangecloud.vn/sitemap.xml
+Sitemap: https://onboarding.orangecloud.vn/sitemap-index.xml
+Sitemap: https://ready.orangecloud.vn/sitemap.xml
+Sitemap: https://launch.orangecloud.vn/sitemap.xml
+Sitemap: https://bhxh.orangecloud.vn/sitemap.xml
+Sitemap: https://reputation.orangecloud.vn/sitemap.xml
+Sitemap: https://wcstat.orangecloud.vn/sitemap.xml
+Sitemap: https://poker.orangecloud.vn/sitemap.xml
+Sitemap: https://firetrace.orangecloud.vn/sitemap.xml
+Sitemap: https://sycule.orangecloud.vn/sitemap.xml
+Sitemap: https://stocknews.orangecloud.vn/sitemap.xml

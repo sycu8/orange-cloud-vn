@@ -1,3 +1,5 @@
+import { PROJECT_PAGES, projectPublicPath } from "./project-catalog.ts";
+
 const APEX = "https://orangecloud.vn";
 
 /** Dedicated hostname for the edge checker. The apex page stays the canonical URL. */
@@ -46,6 +48,28 @@ const CANONICAL_PATH: Record<string, string> = {
   "/tools/edge-coverage": "/tools/edge-coverage/",
   "/tools/edge-coverage/index.html": "/tools/edge-coverage/",
 };
+
+/** Paths that belong in the sitemap and must not be treated as soft 404s. */
+export function indexablePaths(): string[] {
+  return [
+    "/",
+    "/about/",
+    "/status/",
+    "/tools/edge-coverage/",
+    ...PROJECT_PAGES.map((page) => projectPublicPath(page.slug)),
+  ];
+}
+
+for (const path of indexablePaths()) {
+  if (path !== "/") INDEXABLE_HTML.add(path.replace(/\/$/, ""));
+}
+
+for (const page of PROJECT_PAGES) {
+  const slash = projectPublicPath(page.slug);
+  const bare = slash.replace(/\/$/, "");
+  CANONICAL_PATH[bare] = slash;
+  CANONICAL_PATH[`${slash}index.html`] = slash;
+}
 
 export function normalizePath(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith("/")) {
